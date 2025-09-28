@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'sign_up/signup.css' %}">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Left branding -->
+        <div class="left">
+            <h1>SUBHUB</h1>
+            <p>All-in-One Subscription Manager</p>
+        </div>
+
+        <!-- Right form -->
+        <div class="right">
+            <h2>Sign Up</h2>
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Display form non-field errors -->
+                {{ form.non_field_errors }}
+
+                <!-- Username -->
+                {{ form.username.errors }}
+                <input type="text" name="username" placeholder="Enter Username"
+                    value="{{ form.username.value|default:'' }}">
+
+                <!-- Email -->
+                {{ form.email.errors }}
+                <input type="email" name="email" placeholder="Enter Email" value="{{ form.email.value|default:'' }}">
+
+                <!-- Mobile -->
+                {{ form.mobile_number.errors }}
+                <input type="text" name="mobile_number" placeholder="Enter Mobile Number"
+                    value="{{ form.mobile_number.value|default:'' }}">
+
+                <!-- Address fields -->
+                {{ form.state.errors }}
+                <input type="text" name="state" placeholder="State" value="{{ form.state.value|default:'' }}">
+
+                {{ form.district.errors }}
+                <input type="text" name="district" placeholder="District" value="{{ form.district.value|default:'' }}">
+
+                {{ form.city.errors }}
+                <input type="text" name="city" placeholder="City" value="{{ form.city.value|default:'' }}">
+
+                {{ form.pin_code.errors }}
+                <input type="text" name="pin_code" placeholder="Pin Code" value="{{ form.pin_code.value|default:'' }}">
+
+                <!-- Password -->
+                {{ form.password.errors }}
+                <div class="password-container">
+                    <input type="password" id="password1" name="password" placeholder="Enter New Password"
+                        value="{{ form.password.value|default:'' }}">
+                    <span class="show-password" onclick="togglePassword('password1')">&#128065;</span>
+                </div>
+
+                <!-- Password strength bar -->
+                <div class="password-strength-container">
+                    <div id="password-strength-bar" class="strength-bar"></div>
+                    <div id="password-strength-text" class="strength-text"></div>
+                </div>
+
+                <!-- Confirm password -->
+                {{ form.re_password.errors }}
+                <div class="password-container">
+                    <input type="password" id="password2" name="re_password" placeholder="Re-Enter New Password"
+                        value="{{ form.re_password.value|default:'' }}">
+                    <span class="show-password" onclick="togglePassword('password2')">&#128065;</span>
+                </div>
+
+                <!-- Submit button -->
+                <button type="submit">Sign Up</button>
+            </form>
+
+            <!-- Login link -->
+            <div class="login-button">
+                <a href="{% url 'login' %}">Already have an account? Log In</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password toggle
+        function togglePassword(fieldId) {
+            var passwordField = document.getElementById(fieldId);
+            passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
+        }
+
+        // Password strength calculation
+        document.getElementById('password1').addEventListener('input', function () {
+            var password = this.value;
+            var strengthBar = document.getElementById('password-strength-bar');
+            var strengthText = document.getElementById('password-strength-text');
+
+            var score = 0;
+            if (password.length >= 8) score++;
+            if (/[a-z]/.test(password)) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[@$!%*?&]/.test(password)) score++;
+
+            // Update strength bar
+            switch (score) {
+                case 0:
+                case 1:
+                case 2:
+                    strengthBar.style.width = '25%';
+                    strengthBar.style.backgroundColor = '#ff4d4d';
+                    strengthText.textContent = 'Weak';
+                    break;
+                case 3:
+                    strengthBar.style.width = '50%';
+                    strengthBar.style.backgroundColor = '#ffb84d';
+                    strengthText.textContent = 'Moderate';
+                    break;
+                case 4:
+                    strengthBar.style.width = '75%';
+                    strengthBar.style.backgroundColor = '#2a908f';
+                    strengthText.textContent = 'Strong';
+                    break;
+                case 5:
+                    strengthBar.style.width = '100%';
+                    strengthBar.style.backgroundColor = 'green';
+                    strengthText.textContent = 'Very Strong';
+                    break;
+            }
+        });
+    </script>
+</body>
+
+</html>

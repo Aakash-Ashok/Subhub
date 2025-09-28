@@ -1,0 +1,114 @@
+{% extends "dashboard/cusbase_dashboard.html" %}
+
+{% block title %}Plans in {{ category.name }}{% endblock %}
+{% block page_title %}Plans in {{ category.name }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Card styling */
+    .dashboard-card {
+        background-color: #ffffff;
+        padding: 25px 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(42, 144, 143, 0.2);
+    }
+
+    /* Card heading */
+    .dashboard-card h2 {
+        color: #2a908f;
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    /* Table styling */
+    .dashboard-card table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+    }
+
+    .dashboard-card thead tr {
+        background-color: #2a908f;
+        color: #ffffff;
+        text-align: left;
+    }
+
+    .dashboard-card th,
+    .dashboard-card td {
+        padding: 12px 10px;
+        border-bottom: 1px solid #e0e0e0;
+        color: #000000;
+        /* <-- Make cell text black */
+        background-color: #ffffff;
+        /* Optional: keep cells white */
+    }
+
+    /* Subscribe button */
+    .subscribe-btn {
+        padding: 6px 12px;
+        background-color: #2a908f;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+    }
+
+    .subscribe-btn:hover {
+        background-color: #237776;
+    }
+
+    /* Empty state */
+    .dashboard-card td[colspan] {
+        text-align: center;
+        font-style: italic;
+        color: #777;
+    }
+
+    /* Responsive table */
+    .dashboard-card div {
+        overflow-x: auto;
+    }
+</style>
+
+
+<div class="dashboard-card">
+    <h2>Plans in "{{ category.name }}"</h2>
+    <div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Plan Name</th>
+                    <th>Price</th>
+                    <th>Description</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plan in plans %}
+                <tr>
+                    <td>{{ plan.name }}</td>
+                    <td>₹{{ plan.final_price }}</td>
+                    <td>{{ plan.details }}</td>
+                    <td>
+                        <a href="{% url 'subscribe_plan' plan.id %}" class="subscribe-btn">Subscribe</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No active plans available in this category.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

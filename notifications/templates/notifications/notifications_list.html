@@ -1,0 +1,239 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<style>
+    /* ======= Overall Layout ======= */
+    body {
+        background-color: #f8f9fc;
+        font-family: "Poppins", sans-serif;
+    }
+
+    .user-greeting {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        padding: 15px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .planslist-container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .planslist-container h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #2a908f;
+    }
+
+    /* ======= Search + Sort Controls ======= */
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .search-container input[type="text"] {
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        width: 220px;
+        transition: 0.3s;
+    }
+
+    .search-container input[type="text"]:focus {
+        border-color: #2a908f;
+        box-shadow: 0 0 0 2px rgba(42, 144, 143, 0.1);
+    }
+
+    .search-container button,
+    .sort-container button {
+        padding: 10px 16px;
+        background-color: #2a908f;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .search-container button:hover,
+    .sort-container button:hover {
+        background-color: #247e7d;
+    }
+
+    .sort-container select {
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+    /* ======= Notification Table ======= */
+    .planslist-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 20px;
+    }
+
+    .planslist-table th,
+    .planslist-table td {
+        padding: 14px 12px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+        font-size: 14px;
+    }
+
+    .planslist-table th {
+        background-color: #2a908f;
+        color: white;
+        font-weight: 600;
+    }
+
+    .planslist-table tr:hover td {
+        background-color: #f5fafa;
+    }
+
+    .planslist-table a {
+        background-color: #2a908f;
+        padding: 8px 14px;
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+
+    .planslist-table a:hover {
+        background-color: #237776;
+    }
+
+    /* ======= Buttons ======= */
+    .btn-create {
+        display: inline-block;
+        background-color: #2a908f;
+        color: white;
+        padding: 12px 18px;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+
+    .btn-create:hover {
+        background-color: #247e7d;
+    }
+
+    /* ======= Responsive ======= */
+    @media (max-width: 768px) {
+        .controls {
+            flex-direction: column;
+        }
+
+        .planslist-table th,
+        .planslist-table td {
+            font-size: 12px;
+            padding: 10px;
+        }
+
+        .search-container input[type="text"] {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="user-greeting">
+    <span>Hello User</span>
+    <span class="text-muted" style="font-size:16px;">{% now "d N Y" %}</span>
+</div>
+
+<div class="planslist-container">
+    <h1>Sent Notifications</h1>
+
+    <div class="controls">
+        <!-- Search -->
+        <div class="search-container">
+            <form method="POST" action="{% url 'search_noti' %}">
+                {% csrf_token %}
+                <input type="text" placeholder="Search notifications..." name="searched">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        <!-- Sort -->
+        <div class="sort-container">
+            <form method="get" action=".">
+                <label for="sort_by" style="font-weight:600;">Sort by:</label>
+                <select name="sort_by" id="sort_by" onchange="this.form.submit()">
+                    <option value="date_sent_desc" {% if sort_by=='date_sent_desc' %}selected{% endif %}>Newest</option>
+                    <option value="date_sent_asc" {% if sort_by=='date_sent_asc' %}selected{% endif %}>Oldest</option>
+                    <option value="title" {% if sort_by=='title' %}selected{% endif %}>Title</option>
+                    <option value="type" {% if sort_by=='type' %}selected{% endif %}>Type</option>
+                    <option value="recipient" {% if sort_by=='recipient' %}selected{% endif %}>Recipient</option>
+                </select>
+            </form>
+        </div>
+
+        <!-- Filter -->
+        <div class="sort-container">
+            <form method="GET">
+                {{ myFilter.form }}
+                <button type="submit">Apply</button>
+            </form>
+        </div>
+
+        <!-- Create New -->
+        <a href="{% url 'new_notification' %}" class="btn-create">+ New Notification</a>
+    </div>
+
+    {% if not notifications %}
+    <p>No notifications found.</p>
+    {% else %}
+    <table class="planslist-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Recipient</th>
+                <th>Date Sent</th>
+                <th>View</th>
+                <th>Resend</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for notification in notifications %}
+            <tr>
+                <td>{{ notification.title }}</td>
+                <td>{{ notification.type }}</td>
+                <td>{{ notification.recipient }}</td>
+                <td>{{ notification.date_sent }}</td>
+                <td><a href="{% url 'detail' notification.id %}">View</a></td>
+                <td><a href="{% url 'update_notification' notification.id %}">Resend</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Confirm Delete - {{ plan.name }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Container */
+    .delete-container {
+        max-width: 700px;
+        margin: 40px auto;
+        background-color: #f5f7f8;
+        border-radius: 10px;
+        padding: 40px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        font-family: 'Lexend Deca', sans-serif;
+    }
+
+    /* Header */
+    .delete-container h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2a908f;
+        margin-bottom: 20px;
+        border-bottom: 3px solid #2a908f;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    /* Paragraph Text */
+    .delete-container p {
+        font-size: 17px;
+        margin-bottom: 25px;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    .warning {
+        color: #c62828;
+        font-weight: bold;
+        font-size: 18px;
+        background: #ffebee;
+        border-left: 6px solid #c62828;
+        padding: 12px 15px;
+        border-radius: 6px;
+        margin-bottom: 25px;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 10px 22px;
+        border-radius: 6px;
+        font-weight: 600;
+        text-decoration: none;
+        color: white;
+        transition: all 0.3s ease;
+        display: inline-block;
+        margin: 5px;
+    }
+
+    .btn-confirm {
+        background-color: #2a908f;
+    }
+
+    .btn-cancel {
+        background-color: #6c757d;
+    }
+
+    .btn-disabled {
+        background-color: #b0b0b0;
+        cursor: not-allowed;
+    }
+
+    .btn:hover:not(.btn-disabled) {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .delete-container {
+            padding: 25px;
+            margin: 20px;
+        }
+
+        .delete-container h1 {
+            font-size: 24px;
+        }
+
+        .delete-container p {
+            font-size: 16px;
+        }
+    }
+</style>
+
+<div class="delete-container">
+    <h1>Confirm Delete</h1>
+
+    {% if subscriptions_exist %}
+    <p class="warning">
+        ⚠️ Cannot delete the plan <strong>"{{ plan.name }}"</strong> because it is linked to existing subscriptions.
+    </p>
+    <div>
+        <a href="{% url 'plan_list' %}" class="btn btn-cancel">Back</a>
+        <button class="btn btn-disabled" disabled>Delete</button>
+    </div>
+
+    {% else %}
+    <p>Are you sure you want to permanently delete the plan <strong>"{{ plan.name }}"</strong>? <br>
+        This action <strong>cannot be undone</strong>.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-confirm">Yes, Delete</button>
+        <a href="{% url 'plan_list' %}" class="btn btn-cancel">Cancel</a>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

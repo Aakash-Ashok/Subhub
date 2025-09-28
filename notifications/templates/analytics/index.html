@@ -1,0 +1,139 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<table width="100%" cellspacing="0" cellpadding="10"
+    style="background-color: #e0e0e0; color: black; min-height: 735px;">
+    <tr>
+        <td valign="top">
+            <!-- Page Heading and Date -->
+            <table width="100%">
+                <tr>
+                    <td style="padding-right: 150px;">
+                        <div
+                            style="text-align: left; font-weight: bold; font-size: 30px; margin-bottom: 30px; padding-top: 20px;">
+                            Analytics Overview
+                        </div>
+                    </td>
+                    <td style="padding-right: 650px;">
+                        <div>{% now "d N Y" %}</div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Analytics Summary -->
+            <table>
+                <tr>
+                    <td style="padding-right: 150px; padding-left: 10px;">
+                        <table bgcolor="#2a908f" width="100%">
+                            <tr>
+                                <td style="padding: 20px; color: white;">
+                                    <h1>Analytics Summary</h1>
+                                    <p>Total Credit Card users: <strong>{{ total_credits }}%</strong></p>
+                                    <p>Total Paypal users: <strong>{{ total_paypal }}%</strong></p>
+                                    <p>Total Bank transfers: <strong>{{ total_bank }}%</strong></p>
+                                    <p>Total Other methods: <strong>{{ total_other }}%</strong></p>
+                                    <p>Top performing plans: <strong>{{ top_perf }}</strong></p>
+                                </td>
+                                <td style="padding: 20px; color: white;">
+                                    <h1>Top 4 Regions</h1>
+                                    <p><strong>{{ location }} : {{ nlocation }}%</strong></p>
+                                    <p><strong>{{ location2 }} : {{ nlocation2 }}%</strong></p>
+                                    <p><strong>{{ location3 }} : {{ nlocation3 }}%</strong></p>
+                                    <p><strong>{{ location4 }} : {{ nlocation4 }}%</strong></p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p></p>
+
+                        <!-- Key Metrics and Revenue Split -->
+                        <table bgcolor="#2a908f" width="100%">
+                            <tr>
+                                <td style="padding: 20px; color: white;">
+                                    <h1>Key Metrics</h1>
+                                    <p>Sales This Month: <strong>{{ new_subscriptions }}</strong></p>
+                                    <p>Churn Rate: <strong>{{ churn_rate }}%</strong></p>
+                                    <p>ARPU: <strong>Rs{{ arpu }}</strong></p>
+                                    <p>Active Subscribers: <strong>{{ total_active }}</strong></p>
+                                </td>
+                                <td style="padding: 20px; color: white;">
+                                    <h1>Revenue Split</h1>
+                                    <p>Premium plan: <strong>Rs{{ total_prem }}</strong></p>
+                                    <p>Pro plan: <strong>Rs{{ total_pro }}</strong></p>
+                                    <p>Basic plan: <strong>Rs{{ total_basic }}</strong></p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+
+                    <!-- Charts Section -->
+                    <td valign="top">
+                        <div class="right-column">
+                            <div class="chart-container">
+                                <h3>Revenue Trends</h3>
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <h3>Subscription Trends</h3>
+                                <canvas id="subscriptionChart"></canvas>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<!-- Chart.js Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const subscriptionCtx = document.getElementById('subscriptionChart').getContext('2d');
+
+    const revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: {{ revenue_labels| safe }},
+    datasets: [{
+        label: 'Revenue',
+        data: {{ revenue_data| safe }},
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 2,
+        fill: false
+        }]
+    },
+    options: {
+        responsive: true,
+            scales: {
+            x: { title: { display: true, text: 'Month' } },
+            y: { title: { display: true, text: 'Revenue (Rs)' }, beginAtZero: true }
+        }
+    }
+});
+
+    const subscriptionChart = new Chart(subscriptionCtx, {
+        type: 'line',
+        data: {
+            labels: {{ subscription_labels| safe }},
+    datasets: [{
+        label: 'Subscriptions',
+        data: {{ subscription_data| safe }},
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 2,
+        fill: false
+        }]
+    },
+    options: {
+        responsive: true,
+            scales: {
+            x: { title: { display: true, text: 'Month' } },
+            y: { title: { display: true, text: 'Subscriptions' }, beginAtZero: true }
+        }
+    }
+});
+</script>
+{% endblock %}

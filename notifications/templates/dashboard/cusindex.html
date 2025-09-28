@@ -1,0 +1,247 @@
+{% extends "dashboard/cusbase_dashboard.html" %}
+
+{% block title %}Customer Dashboard{% endblock %}
+{% block page_title %}Hello {{ user.username }}{% endblock %}
+
+{% block content %}
+<style>
+    /* 🌤️ Light Theme */
+    body {
+        background-color: #f4f7f9;
+        font-family: "Poppins", sans-serif;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Greeting */
+    .greeting {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        color: #2a908f;
+        margin-bottom: 25px;
+    }
+
+    /* Cards */
+    .dashboard-card {
+        background: #ffffff;
+        padding: 25px 30px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 15px rgba(42, 144, 143, 0.2);
+    }
+
+    /* Section Headings */
+    .dashboard-card h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #2a908f;
+        margin-bottom: 15px;
+    }
+
+    /* Paragraphs */
+    .dashboard-card p {
+        font-size: 15px;
+        margin: 6px 0;
+        color: #444;
+    }
+
+    /* Highlighted text */
+    .dashboard-card strong {
+        color: #111;
+    }
+
+    /* Status colors */
+    .expired {
+        color: #d9534f;
+        font-weight: 600;
+    }
+
+    .days-left {
+        color: #28a745;
+        font-weight: 600;
+    }
+
+    /* Divider */
+    .dashboard-card hr {
+        margin: 15px 0;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+
+    /* Charts section */
+    .charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+
+    .chart-container {
+        background: #ffffff;
+        padding: 20px 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(42, 144, 143, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .chart-container:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(42, 144, 143, 0.25);
+    }
+
+    .chart-container h3 {
+        font-size: 18px;
+        color: #2a908f;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-card {
+            padding: 20px;
+        }
+
+        .chart-container {
+            padding: 15px;
+        }
+    }
+</style>
+
+<!-- ✅ Greeting -->
+<div class="greeting" id="greeting-text">
+    Hello {{ user.username }}
+</div>
+
+<script>
+    const greetingEl = document.getElementById('greeting-text');
+    const hour = new Date().getHours();
+    let greeting = "Hello";
+    if (hour >= 5 && hour < 12) {
+        greeting = "Good Morning";
+    } else if (hour >= 12 && hour < 17) {
+        greeting = "Good Afternoon";
+    } else {
+        greeting = "Good Evening";
+    }
+    greetingEl.textContent = greeting + ", {{ user.username }}";
+</script>
+
+<!-- ✅ Active Subscriptions -->
+<div class="dashboard-card">
+    <h2>Active Subscriptions</h2>
+    {% if active_subscriptions %}
+    {% for sub in active_subscriptions %}
+    <p><strong>Plan:</strong> {{ sub.plan.name }}</p>
+    <p><strong>Price:</strong> ₹{{ sub.plan.final_price }}</p>
+    <p><strong>Status:</strong> {{ sub.subscription_status }}</p>
+    <p><strong>Start Date:</strong> {{ sub.start_date }}</p>
+    <p><strong>End Date:</strong> {{ sub.end_date|date:"Y-m-d" }}</p>
+    {% if sub.days_left == 0 %}
+    <p class="expired"><strong>Days Left:</strong> Expired (0 days)</p>
+    {% else %}
+    <p class="days-left"><strong>Days Left:</strong> {{ sub.days_left }} days</p>
+    {% endif %}
+    <hr>
+    {% endfor %}
+    {% else %}
+    <p>You do not have any active subscriptions.</p>
+    {% endif %}
+</div>
+
+<!-- ✅ Upcoming Payments -->
+<div class="dashboard-card">
+    <h2>Upcoming Payments</h2>
+    {% if pending_payments %}
+    {% for sub in pending_payments %}
+    <p><strong>Plan:</strong> {{ sub.plan.name }}</p>
+    <p><strong>Due Amount:</strong> ₹{{ sub.plan.final_price }}</p>
+    <p><strong>Due Date:</strong> {{ sub.end_date|date:"Y-m-d" }}</p>
+    {% if sub.days_left == 0 %}
+    <p class="expired"><strong>Days Left:</strong> Expired (0 days)</p>
+    {% else %}
+    <p class="days-left"><strong>Days Left:</strong> {{ sub.days_left }} days</p>
+    {% endif %}
+    <hr>
+    {% endfor %}
+    {% else %}
+    <p>No upcoming payments.</p>
+    {% endif %}
+</div>
+
+<!-- ✅ Charts -->
+<div class="charts">
+    <div class="chart-container">
+        <h3>Subscription Trends</h3>
+        <canvas id="subscriptionChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <h3>Payment Trends</h3>
+        <canvas id="paymentChart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const subscriptionCtx = document.getElementById('subscriptionChart').getContext('2d');
+    const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+
+    new Chart(subscriptionCtx, {
+        type: 'line',
+        data: {
+            labels: {{ subscription_labels| safe }},
+        datasets: [{
+            label: 'Subscriptions',
+            data: {{ subscription_data| safe }},
+        borderColor: '#2a908f',
+        borderWidth: 2,
+        backgroundColor: 'rgba(42,144,143,0.15)',
+        pointBackgroundColor: '#2a908f',
+        fill: true,
+        tension: 0.3
+            }]
+        },
+        options: {
+        responsive: true,
+        scales: {
+            x: { grid: { color: '#f0f0f0' } },
+            y: { beginAtZero: true, grid: { color: '#f0f0f0' } }
+        },
+        plugins: { legend: { labels: { color: '#333' } } }
+    }
+    });
+
+    new Chart(paymentCtx, {
+        type: 'line',
+        data: {
+            labels: {{ payment_labels| safe }},
+        datasets: [{
+            label: 'Payments',
+            data: {{ payment_data| safe }},
+        borderColor: '#2a908f',
+        borderWidth: 2,
+        backgroundColor: 'rgba(42,144,143,0.15)',
+        pointBackgroundColor: '#2a908f',
+        fill: true,
+        tension: 0.3
+            }]
+        },
+        options: {
+        responsive: true,
+        scales: {
+            x: { grid: { color: '#f0f0f0' } },
+            y: { beginAtZero: true, grid: { color: '#f0f0f0' } }
+        },
+        plugins: { legend: { labels: { color: '#333' } } }
+    }
+    });
+</script>
+{% endblock %}
