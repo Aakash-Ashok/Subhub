@@ -9,3 +9,6 @@ asgiref==3.9.2
 tzdata==2025.2
 sqlparse==0.5.3
 typing_extensions==4.15.0
+celery==5.5.3
+kombu==5.5.4
+aiohttp==3.12.15
