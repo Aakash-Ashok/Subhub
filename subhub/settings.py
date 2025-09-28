@@ -18,7 +18,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-!&c(zf+v!5q3vu9*khzj__iljo
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
 # Allowed hosts
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,subhub.onrender.com").split(",")
+ALLOWED_HOSTS = [*]
 
 # Application definition
 INSTALLED_APPS = [
