@@ -1,0 +1,174 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Customer Payments{% endblock %}
+
+{% block content %}
+<style>
+    .payments-container {
+        max-width: 1100px;
+        margin: 40px auto;
+        background: #f7f9f9;
+        border-radius: 10px;
+        padding: 30px 40px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        font-family: 'Lexend Deca', sans-serif;
+    }
+
+    .payments-container h2 {
+        color: #2a908f;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        border-bottom: 3px solid #2a908f;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    /* Search Bar */
+    .payments-search {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .payments-search input {
+        flex: 1;
+        padding: 10px 12px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+
+    .payments-search input:focus {
+        border-color: #2a908f;
+    }
+
+    .payments-search button {
+        padding: 10px 20px;
+        background-color: #2a908f;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .payments-search button:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    /* Table */
+    .payments-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .payments-table th {
+        background-color: #2a908f;
+        color: white;
+        text-align: left;
+        padding: 14px 15px;
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .payments-table td {
+        padding: 14px 15px;
+        font-size: 15px;
+        color: #333;
+        border-bottom: 1px solid #e0e0e0;
+        vertical-align: middle;
+    }
+
+    .payments-table tr:nth-child(even) {
+        background-color: #f2fafa;
+    }
+
+    .payments-table tr:hover {
+        background-color: #e9f6f6;
+        transition: background 0.2s;
+    }
+
+    /* Empty State */
+    .payments-empty {
+        text-align: center;
+        color: #888;
+        padding: 25px 0;
+        font-size: 16px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .payments-container {
+            padding: 20px;
+        }
+
+        .payments-table th,
+        .payments-table td {
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        .payments-search {
+            flex-direction: column;
+        }
+
+        .payments-search button {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="payments-container">
+    <h2>Customer Payments</h2>
+
+    <!-- Search Form -->
+    <form method="get" class="payments-search">
+        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search customers...">
+        <button type="submit">Search</button>
+    </form>
+
+    <!-- Payments Table -->
+    <table class="payments-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Category</th>
+                <th>Plan</th>
+                <th>Date Paid</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Next Due</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in payments %}
+            <tr>
+                <td>{{ sub.id }}</td>
+                <td>{{ sub.customer.username }}</td>
+                <td>{{ sub.plan.category.name }}</td>
+                <td>{{ sub.plan.name }}</td>
+                <td>{{ sub.start_date|date:"Y-m-d" }}</td>
+                <td>₹ {{ sub.plan.price }}</td>
+                <td>{{ sub.payment_method }}</td>
+                <td>{{ sub.start_date|date:"Y-m-d" }} → <strong>{{ sub.next_due_date|date:"Y-m-d" }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="payments-empty">No payments found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

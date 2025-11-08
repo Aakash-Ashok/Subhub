@@ -1,0 +1,110 @@
+{% extends "dashboard/cusbase_dashboard.html" %}
+
+{% block title %}All Categories{% endblock %}
+{% block page_title %}{% endblock %}
+
+{% block content %}
+<style>
+    /* Dashboard card */
+    .dashboard-card {
+        background-color: #ffffff;
+        padding: 25px 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(42, 144, 143, 0.2);
+    }
+
+    /* Section heading */
+    .dashboard-card h2 {
+        color: #2a908f;
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    /* Table styling */
+    .dashboard-card table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #ffffff;
+        color: #333;
+        font-size: 15px;
+    }
+
+    .dashboard-card thead tr {
+        background-color: #2a908f;
+        color: #fff;
+        text-align: left;
+    }
+
+    .dashboard-card th,
+    .dashboard-card td {
+        padding: 12px 10px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    /* Action button */
+    .dashboard-card a {
+        text-decoration: none;
+        font-weight: 500;
+        transition: background-color 0.2s ease;
+    }
+
+    .dashboard-card a:hover {
+        opacity: 0.85;
+    }
+
+    /* Responsive table */
+    .dashboard-card div {
+        overflow-x: auto;
+    }
+
+    /* Empty state */
+    .dashboard-card td[colspan] {
+        text-align: center;
+        font-style: italic;
+        color: #777;
+    }
+</style>
+
+<div class="dashboard-card">
+    <h2>All Categories</h2>
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Plans</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cat in categories %}
+                <tr>
+                    <td>{{ cat.name }}</td>
+                    <td>{{ cat.category }}</td>
+                    <td>{{ cat.description }}</td>
+                    <td>
+                        <a href="{% url 'plans_by_category' cat.id %}"
+                            style="background-color: #2a908f; color: white; padding: 6px 12px; border-radius: 5px;">
+                            View Plans
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No categories available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

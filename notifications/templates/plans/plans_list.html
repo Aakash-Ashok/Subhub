@@ -1,0 +1,181 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Plans List{% endblock %}
+
+{% block content %}
+<style>
+    .plans-container {
+        flex: 1;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin: 30px auto;
+        max-width: 1200px;
+    }
+
+    .plans-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .plans-header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2a908f;
+        margin: 0;
+    }
+
+    .plans-header small {
+        color: #555;
+        font-size: 16px;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .search-form input {
+        padding: 10px;
+        flex: 1;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 15px;
+    }
+
+    .search-form button {
+        padding: 10px 20px;
+        background-color: #2a908f;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .search-form button:hover {
+        background-color: #165c5b;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        background-color: #fff;
+    }
+
+    th {
+        background-color: #2a908f;
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        font-size: 15px;
+    }
+
+    tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .btn-view {
+        padding: 6px 12px;
+        background-color: #2a908f;
+        color: white;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+
+    .btn-view:hover {
+        background-color: #165c5b;
+    }
+
+    .btn-create {
+        display: inline-block;
+        margin-top: 25px;
+        padding: 10px 18px;
+        background-color: #2a908f;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+
+    .btn-create:hover {
+        background-color: #165c5b;
+    }
+
+    .no-results {
+        text-align: center;
+        color: #555;
+        font-style: italic;
+        margin-top: 20px;
+    }
+</style>
+
+<div class="plans-container">
+    <div class="plans-header">
+        <h1>Hello {{ user.username }}</h1>
+        <small>{% now "d N Y" %}</small>
+    </div>
+
+    <!-- Search Form -->
+    <form method="get" action="." class="search-form">
+        <input type="text" name="search" value="{{ search_query }}" placeholder="Search by plan name">
+        <button type="submit">Search</button>
+    </form>
+
+    <!-- Plans Table -->
+    {% if plans %}
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Details</th>
+                <th>Category</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Price</th>
+                <th>Final Price</th>
+                <th>Discount Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for plan in plans %}
+            <tr>
+                <td>{{ plan.name }}</td>
+                <td>{{ plan.details }}</td>
+                <td>{{ plan.category }}</td>
+                <td>{{ plan.get_duration_display }}</td>
+                <td>{{ plan.get_status_display }}</td>
+                <td>₹{{ plan.price }}</td>
+                <td>₹{{ plan.final_price }}</td>
+                <td>{{ plan.discount_status }}</td>
+                <td><a href="{% url 'plan_detail' plan.id %}" class="btn-view">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="no-results">No plans found.</p>
+    {% endif %}
+
+    <!-- Create Plan Button -->
+    <a href="{% url 'plan_create' %}" class="btn-create">+ Create New Plan</a>
+</div>
+
+{% endblock %}

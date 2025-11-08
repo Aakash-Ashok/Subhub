@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Subhub{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Lexend Deca', sans-serif;
+        }
+
+        .sidebar {
+            width: 220px;
+            background-color: #2a908f;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 30px;
+            padding: 20px 0;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            margin: 5px 10px;
+        }
+
+        .sidebar a.active {
+            color: #2a908f;
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+            background-color: #e0e0e0;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">SUBHUB</div>
+        <a href="{% url 'LKJH' %}"
+            class="{% if request.resolver_match.url_name == 'LKJH' %}active{% endif %}">Dashboard</a>
+        <a href="{% url 'category_manage' %}"
+            class="{% if request.resolver_match.url_name == 'category_manage' %}active{% endif %}">Category</a>
+        <a href="{% url 'plan_list' %}"
+            class="{% if request.resolver_match.url_name == 'plan_list' %}active{% endif %}">Plans</a>
+        <a href="{% url 'payments_list' %}"
+            class="{% if request.resolver_match.url_name == 'payments_list' %}active{% endif %}">Payments</a>
+        <a href="{% url 'notifications' %}"
+            class="{% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">Notifications</a>
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,19 @@
+{% extends "dashboard/cusbase_dashboard.html" %}
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+<div style="padding:30px;">
+    <h2 style="color:#2a908f; text-align:center;">Select a Category Type</h2>
+
+    <div style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; margin-top:30px;">
+        {% for ct in category_types %}
+        <a href="{% url 'categories_by_type' ct %}"
+            style="padding:20px 30px; background:#2a908f; color:white; border-radius:10px; font-weight:600; text-decoration:none;">
+            {{ ct|capfirst }}
+        </a>
+        {% empty %}
+        <p>No categories available.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

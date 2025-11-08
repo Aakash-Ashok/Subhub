@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SubHub | Sign Up</title>
+    {% load static %}
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        :root {
+            --accent: #2a908f;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --card-radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: "El Messiri", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #0f1724, #071826, #062a3a, #083045);
+            background-size: 400% 400%;
+            animation: bgShift 12s ease infinite;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+        }
+
+        @keyframes bgShift {
+            0% {
+                background-position: 0% 50%
+            }
+
+            50% {
+                background-position: 100% 50%
+            }
+
+            100% {
+                background-position: 0% 50%
+            }
+        }
+
+        /* layout */
+        .page {
+            width: min(1100px, 96%);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            align-items: center;
+        }
+
+        /* left panel (branding) */
+        .brand {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            padding: 48px;
+            color: #fff;
+            border-radius: var(--card-radius);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+            box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            position: relative;
+            overflow: hidden;
+            min-height: 420px;
+        }
+
+        .brand h1 {
+            font-size: 48px;
+            color: var(--accent);
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: 1px
+        }
+
+        .brand p {
+            opacity: 0.95;
+            margin: 0;
+            font-size: 18px
+        }
+
+        /* floating decorative squares */
+        .brand .square {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            animation: floatY 10s linear infinite;
+        }
+
+        .brand .square.s1 {
+            width: 120px;
+            height: 120px;
+            top: -20px;
+            right: -40px;
+            animation-delay: -1s
+        }
+
+        .brand .square.s2 {
+            width: 160px;
+            height: 160px;
+            left: -80px;
+            top: 100px;
+            animation-delay: -2.5s;
+            z-index: 2
+        }
+
+        .brand .square.s3 {
+            width: 60px;
+            height: 60px;
+            right: -20px;
+            bottom: 80px
+        }
+
+        @keyframes floatY {
+
+            0%,
+            100% {
+                transform: translateY(-14px)
+            }
+
+            50% {
+                transform: translateY(14px)
+            }
+        }
+
+        /* right panel (form) */
+        .card {
+            padding: 28px;
+            border-radius: var(--card-radius);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 60px rgba(2, 6, 23, 0.6);
+            position: relative;
+            overflow: hidden;
+            min-height: 420px;
+        }
+
+        .card h2 {
+            color: #fff;
+            margin: 0 0 18px 0;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        form.signup {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            align-items: start;
+        }
+
+        /* for small screens, stack */
+        @media(max-width:880px) {
+            .page {
+                grid-template-columns: 1fr;
+                padding: 18px
+            }
+
+            form.signup {
+                grid-template-columns: 1fr
+            }
+
+            .brand {
+                min-height: 160px;
+                padding: 24px
+            }
+        }
+
+        .field {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field.full {
+            grid-column: 1 / -1
+        }
+
+        .input {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input i.icon {
+            position: absolute;
+            left: 12px;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 16px
+        }
+
+        .input input,
+        .input select {
+            width: 100%;
+            padding: 12px 14px 12px 40px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.02);
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: box-shadow .18s, border-color .18s, transform .12s;
+        }
+
+        .input input::placeholder {
+            color: rgba(255, 255, 255, 0.6)
+        }
+
+        .input input:focus,
+        .input select:focus {
+            border-color: rgba(255, 255, 255, 0.18);
+            box-shadow: 0 6px 20px rgba(42, 144, 143, 0.08);
+        }
+
+        .small-note {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7)
+        }
+
+        .error-text {
+            color: #ffb4b4;
+            font-size: 13px
+        }
+
+        /* password show button */
+        .show-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* strength bar across full width */
+        .strength-wrap {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .strength-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            overflow: hidden
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff4d4d, #ffb84d, #2a908f);
+            transition: width .25s ease
+        }
+
+        /* submit */
+        .actions {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 6px
+        }
+
+        .btn {
+            padding: 12px 22px;
+            border-radius: 10px;
+            border: 0;
+            font-weight: 700;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(42, 144, 143, 0.14);
+            transition: transform .12s ease, box-shadow .12s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 40px rgba(42, 144, 143, 0.18)
+        }
+
+        /* link text */
+        .muted-link {
+            color: rgba(255, 255, 255, 0.85);
+            text-align: center;
+            font-size: 14px
+        }
+
+        .muted-link a {
+            color: #fff;
+            text-decoration: underline
+        }
+
+        /* tiny responsive tweaks */
+        @media(max-width:480px) {
+            .brand h1 {
+                font-size: 34px
+            }
+
+            .card {
+                padding: 18px
+            }
+        }
+
+        /* helper: hide customer fields initially via inline or JS */
+        #customer-fields {
+            display: block
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <!-- Left branding -->
+        <div class="brand">
+            <div class="square s1"></div>
+            <div class="square s2"></div>
+            <div class="square s3"></div>
+
+            <h1>SUBHUB</h1>
+            <p>All-in-One Subscription Manager</p>
+            <p class="small-note" style="margin-top:16px;opacity:.95">
+                Create an account to manage plans, subscriptions and customers.
+            </p>
+        </div>
+
+        <!-- Right card: sign up -->
+        <div class="card">
+            <h2>Create your account</h2>
+
+            <!-- show non-field errors -->
+            {% if form.non_field_errors %}
+            <div class="error-text" style="margin-bottom:10px">
+                {% for err in form.non_field_errors %}{{ err }} {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" class="signup" id="signupForm" novalidate>
+                {% csrf_token %}
+
+                <!-- username -->
+                <div class="field">
+                    <label class="small-note">Username</label>
+                    <div class="input">
+                        <i class="fa-solid fa-user icon"></i>
+                        <input name="username" type="text" placeholder="Enter username"
+                            value="{{ form.username.value|default:'' }}" required>
+                    </div>
+                    {% if form.username.errors %}<div class="error-text">{{ form.username.errors.0 }}</div>{% endif %}
+                </div>
+
+                <!-- email -->
+                <div class="field">
+                    <label class="small-note">Email</label>
+                    <div class="input">
+                        <i class="fa-solid fa-envelope icon"></i>
+                        <input name="email" type="email" placeholder="Enter email"
+                            value="{{ form.email.value|default:'' }}" required>
+                    </div>
+                    {% if form.email.errors %}<div class="error-text">{{ form.email.errors.0 }}</div>{% endif %}
+                </div>
+
+                <!-- mobile -->
+                <div class="field">
+                    <label class="small-note">Mobile</label>
+                    <div class="input">
+                        <i class="fa-solid fa-mobile-screen-button icon"></i>
+                        <input name="mobile_number" type="text" placeholder="Enter mobile number"
+                            value="{{ form.mobile_number.value|default:'' }}" required>
+                    </div>
+                    {% if form.mobile_number.errors %}<div class="error-text">{{ form.mobile_number.errors.0 }}</div>{%endif %}
+                </div>
+
+                <!-- role -->
+                <div class="field">
+                    <label class="small-note">Role</label>
+                    <div class="input">
+                        <i class="fa-solid fa-gears icon"></i>
+                        <select name="role" id="role-select" required>
+                            <option value="">Select role</option>
+                            {% for v,l in form.role.field.choices %}
+                            <option value="{{ v }}" {% if form.role.value == v %}selected{% endif %}>{{ l }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% if form.role.errors %}<div class="error-text">{{ form.role.errors.0 }}</div>{% endif %}
+                </div>
+
+                <!-- customer-only fields container -->
+                <div id="customer-fields" class="field full">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                        <div>
+                            <label class="small-note">State</label>
+                            <div class="input">
+                                <i class="fa-solid fa-location-dot icon"></i>
+                                <input name="state" type="text" placeholder="State"
+                                    value="{{ form.state.value|default:'' }}">
+                            </div>
+                            {% if form.state.errors %}<div class="error-text">{{ form.state.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div>
+                            <label class="small-note">District</label>
+                            <div class="input">
+                                <i class="fa-solid fa-building icon"></i>
+                                <input name="district" type="text" placeholder="District"
+                                    value="{{ form.district.value|default:'' }}">
+                            </div>
+                            {% if form.district.errors %}<div class="error-text">{{ form.district.errors.0 }}</div>{%endif %}
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+                        <div>
+                            <label class="small-note">City</label>
+                            <div class="input">
+                                <i class="fa-solid fa-city icon"></i>
+                                <input name="city" type="text" placeholder="City"
+                                    value="{{ form.city.value|default:'' }}">
+                            </div>
+                            {% if form.city.errors %}<div class="error-text">{{ form.city.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div>
+                            <label class="small-note">Pin Code</label>
+                            <div class="input">
+                                <i class="fa-solid fa-mailbox icon"></i>
+                                <input name="pin_code" type="text" placeholder="Pin Code"
+                                    value="{{ form.pin_code.value|default:'' }}">
+                            </div>
+                            {% if form.pin_code.errors %}<div class="error-text">{{ form.pin_code.errors.0 }}</div>{%endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- password -->
+                <div class="field">
+                    <label class="small-note">Password</label>
+                    <div class="input">
+                        <i class="fa-solid fa-lock icon"></i>
+                        <input id="password" name="password" type="password" placeholder="Enter password" required>
+                        <button type="button" class="show-btn" id="togglePass" aria-label="show password"><i
+                                class="fa-solid fa-eye"></i></button>
+                    </div>
+                    {% if form.password.errors %}<div class="error-text">{{ form.password.errors.0 }}</div>{% endif %}
+                </div>
+
+                <!-- confirm password -->
+                <div class="field">
+                    <label class="small-note">Confirm Password</label>
+                    <div class="input">
+                        <i class="fa-solid fa-circle-check icon"></i>
+                        <input id="re_password" name="re_password" type="password" placeholder="Confirm password"
+                            required>
+                    </div>
+                    {% if form.re_password.errors %}<div class="error-text">{{ form.re_password.errors.0 }}</div>{%endif %}
+                </div>
+
+                <!-- strength bar -->
+                <div class="strength-wrap">
+                    <div class="strength-bar-bg">
+                        <div id="strength" class="strength-bar"></div>
+                    </div>
+                    <div id="strengthText" class="small-note"
+                        style="white-space:nowrap;width:110px;text-align:right;color:rgba(255,255,255,0.9)">Weak</div>
+                </div>
+
+                <!-- actions -->
+                <div class="actions">
+                    <button type="submit" class="btn">Sign Up</button>
+                </div>
+
+                <!-- links -->
+                <div class="field full muted-link" style="margin-top:6px;text-align:center">
+                    <div>Already have an account? <a href="{% url 'login' %}">Log in</a></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            // initial show/hide of customer fields depending on role value from server
+            const roleSelect = document.getElementById('role-select');
+            const customerWrap = document.getElementById('customer-fields');
+
+            function toggleCustomer() {
+                if (!roleSelect) return;
+                const v = roleSelect.value;
+                if (v === 'customer' || v === 'Customer') {
+                    customerWrap.style.display = 'block';
+                } else {
+                    customerWrap.style.display = 'none';
+                }
+            }
+            toggleCustomer();
+            roleSelect && roleSelect.addEventListener('change', toggleCustomer);
+
+            // show/hide password
+            const pw = document.getElementById('password');
+            const toggle = document.getElementById('togglePass');
+            toggle && toggle.addEventListener('click', function () {
+                if (pw.type === 'password') {
+                    pw.type = 'text';
+                    toggle.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+                } else {
+                    pw.type = 'password';
+                    toggle.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                }
+            });
+
+            // password strength meter
+            const strengthBar = document.getElementById('strength');
+            const strengthText = document.getElementById('strengthText');
+
+            function evaluatePassword(s) {
+                let score = 0;
+                if (!s) return { score: 0, label: 'Weak' };
+                if (s.length >= 8) score++;
+                if (/[a-z]/.test(s)) score++;
+                if (/[A-Z]/.test(s)) score++;
+                if (/[0-9]/.test(s)) score++;
+                if (/[@$!%*?&]/.test(s)) score++;
+                let label = 'Weak';
+                if (score <= 2) label = 'Weak';
+                else if (score == 3) label = 'Moderate';
+                else if (score == 4) label = 'Strong';
+                else label = 'Very Strong';
+                return { score, label };
+            }
+
+            pw && pw.addEventListener('input', function (e) {
+                const val = e.target.value || '';
+                const r = evaluatePassword(val);
+                const pct = (r.score / 5) * 100;
+                strengthBar.style.width = pct + '%';
+                if (r.score <= 2) { strengthBar.style.background = 'linear-gradient(90deg,#ff4d4d,#ff8a66)'; strengthText.textContent = 'Weak' }
+                else if (r.score == 3) { strengthBar.style.background = 'linear-gradient(90deg,#ffb84d,#ffd88a)'; strengthText.textContent = 'Moderate' }
+                else if (r.score == 4) { strengthBar.style.background = 'linear-gradient(90deg,#2a908f,#3bb3a9)'; strengthText.textContent = 'Strong' }
+                else { strengthBar.style.background = 'linear-gradient(90deg,#2a908f,#00c6a7)'; strengthText.textContent = 'Very Strong' }
+            });
+
+            // prevent form submission if passwords don't match (client-side guard)
+            document.getElementById('signupForm').addEventListener('submit', function (e) {
+                const p = document.getElementById('password').value;
+                const rp = document.getElementById('re_password').value;
+                if (p !== rp) {
+                    e.preventDefault();
+                    alert('Passwords do not match.');
+                    return false;
+                }
+            });
+        })();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,21 @@
+<div class="topbar">
+    <div class="dashboard-header">
+        <h2>{% block page_title %}Dashboard{% endblock %}</h2>
+    </div>
+    <div class="user-info">
+        <div class="notifications" onclick="toggleNotifications()">
+            <img src="{% static 'dashboard/img/bell.svg' %}" alt="Notifications" width="24">
+            <span class="badge">{{ notifications_count }}</span>
+            <ul class="notifications-dropdown" id="notificationsDropdown">
+                {% for noti in notifications_list %}
+                <li>{{ noti.title|truncatechars:25 }}</li>
+                {% empty %}
+                <li>No notifications</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="user-avatar">
+            <img src="{% static 'dashboard/img/user.png' %}" alt="{{ user.username }}">
+        </div>
+    </div>
+</div>

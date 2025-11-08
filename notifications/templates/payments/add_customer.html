@@ -1,0 +1,120 @@
+<!-- customers/templates/customers/add_customer.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payments</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        $(function() {
+            $("#id_payment_date").datepicker({ dateFormat: 'yy-mm-dd' });
+            $("#id_due_date").datepicker({ dateFormat: 'yy-mm-dd' });
+        });
+    </script>
+</head>
+<body>
+    <table width="100%" cellspacing="0" cellpadding="0" style=" width: 1536px; height: 735px; position: absolute; top: 0; left: 0; box-shadow: 2px 0 5px rgba(0,0,0,0.1); color: white; font-family: Arial, sans-serif;">
+        <tr>
+            <td bgcolor="#2a908f" width="220" valign="top" align="center" >
+                <table width="100%" cellspacing="0" cellpadding="10">
+                    <tr>
+                        <td align="center">
+                          <div style="text-align: center; font-weight: bold; font-size: 30px; margin-bottom: 30px; padding-top: 20px;">
+                            SUBHUB
+                          </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="{% url 'LKJH' %}" style="display: block; padding: 10px; text-decoration: none; color: white; text-align: center;">Dashboard</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="{% url 'list' %}" style="display: block; padding: 10px; text-decoration: none; color: white; text-align: center;">Customers</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="{% url 'plan_list' %}" style="display: block; padding: 10px; text-decoration: none; color: white; text-align: center;">Plans</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                          <a href="{% url 'customer_list' %}" style="display: block; padding: 10px; text-decoration: none; color: #2a908f; background-color: #e0e0e0; text-align: center; border-radius: 5px; font-weight: bold;"><b>Payments</b></a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="{% url 'index' %}" style="display: block; padding: 10px; text-decoration: none; color: white; text-align: center;">Analytics</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                          <a href="{% url 'notifications' %}" style="display: block; padding: 10px; text-decoration: none; color: white; text-align: center;">Notifications</a>
+                        </td>
+                    </tr>
+                    <tr>
+                         
+                    </tr>
+                </table>
+               
+            <td valign="top">
+                <table width="100%" cellspacing="0" cellpadding="10" style="background-color: #e0e0e0; color: black; height: 735px;">
+                    <tr>
+                        <td valign="top">
+                          <table>
+                            <tr>
+                              <td style="padding-right: 150px;">
+                                <div style="text-align: left; font-weight: bold; font-size: 30px; margin-bottom: 30px;  padding-top: 20px;">Hello User</div>
+                              </td>
+                              <td style="padding-right: 650px;">
+                                <div>{% now "d N Y" %}</div>
+                              </td>
+                              
+                            </tr>
+                          </table>
+                            
+                          <table>
+                            <tr>
+                              <td style="padding-right: 150px;">
+                                
+                              </td>
+                              <td style="padding-right: 150px;">
+                                <table>
+                                  <tr>
+                                    <form method="get" action=""></form>
+                                    <td>
+                                      {{ myFilter.form }}
+                                    </td>
+                                    <td>
+                                      {% comment %} <button>Apply</button> {% endcomment %}
+                                    </td>
+                                    </form>
+                                    
+                                  </tr>
+                                </table>  
+                              </td>
+        
+                            </tr>
+                            <h2>New Payment Details</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-create" style="margin-top: 20px; padding: 10px; background-color: #2a908f; color: white; text-decoration: none; border-radius: 5px;">Save</button>
+    </form>
+    <br>
+    <br>
+                          </table>  
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    
+</body>
+</html>

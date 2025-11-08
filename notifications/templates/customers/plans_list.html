@@ -1,0 +1,56 @@
+{% extends "dashboard/cusbase_dashboard.html" %}
+
+{% block title %}Plans in {{ category.name }}{% endblock %}
+{% block page_title %}Plans in {{ category.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-card">
+    
+    <h2>Plans in "{{ category.name }}"</h2>
+    <div style="overflow-x:auto;">
+        <table style="width:100%; background-color:white; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color:#2a908f; color:white;">
+                    <th style="padding:12px; text-align:left;">Plan Name</th>
+                    <th style="padding:12px; text-align:left;">Price</th>
+                    <th style="padding:12px; text-align:left;">Description</th>
+                    <th style="padding:12px; text-align:left;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plan in plans %}
+                <tr>
+                    <td style="padding:12px;">{{ plan.name }}</td>
+                    <td style="padding:12px;">₹{{ plan.final_price }}</td>
+                    <td style="padding:12px;">{{ plan.description }}</td>
+                    <td style="padding:12px;">
+                        <a href="{% url 'subscribe_plan' plan.id %}" class="subscribe-btn">Subscribe</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="padding:12px;">No active plans available in this category.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+/* Buttons consistent with dashboard theme */
+.subscribe-btn {
+    padding: 6px 12px;
+    background-color: #2a908f;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.subscribe-btn:hover {
+    background-color: #237776;
+}
+</style>
+{% endblock %}

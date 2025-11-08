@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% load static %}
+    {% load tz %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ======= Reset & Base ======= */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lexend Deca', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f8;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ======= Sidebar ======= */
+        .sidebar {
+            width: 240px;
+            background-color: #2a908f;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            font-size: 26px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 12px 20px;
+            width: 100%;
+            color: white;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            transition: 0.3s;
+            text-align: left;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #e0e0e0;
+            color: #2a908f;
+            font-weight: bold;
+        }
+
+        /* ======= Topbar ======= */
+        .topbar {
+            margin-left: 240px;
+            background-color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .topbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .topbar .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .topbar .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .topbar .notifications .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: red;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 50%;
+        }
+
+        .notifications-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 45px;
+            background-color: white;
+            width: 250px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .notifications-dropdown.active {
+            display: block;
+        }
+
+        .notifications-dropdown li {
+            padding: 10px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .notifications-dropdown li:last-child {
+            border-bottom: none;
+        }
+
+        /* ======= Main Content ======= */
+        .main {
+            margin-left: 240px;
+            padding: 25px;
+            min-height: 100vh;
+            background-color: #f4f6f8;
+        }
+
+        .dashboard-header h2 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .dashboard-card {
+            background-color: #2a908f;
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-card h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .dashboard-card p {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .days-left {
+            font-weight: bold;
+            color: #ffff00;
+        }
+
+        .expired {
+            font-weight: bold;
+            color: #ff4d4d;
+        }
+
+        .charts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .chart-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            flex: 1 1 45%;
+            min-width: 300px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 175px !important;
+        }
+
+        /* ======= Responsive ======= */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                flex-direction: row;
+                justify-content: space-around;
+                padding: 10px 0;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .charts {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>SUBHUB</h2>
+        <a href="{% url 'customer_dashboard' %}"
+            class="{% if request.resolver_match.url_name == 'customer_dashboard' %}active{% endif %}">Dashboard</a>
+        <a href="{% url 'customer_category_types' %}"
+            class="{% if request.resolver_match.url_name == 'customer_categories' %}active{% endif %}">Categories</a>
+        <a href="{% url 'customer_subscriptions' %}"
+            class="{% if request.resolver_match.url_name == 'customer_subscriptions' %}active{% endif %}">My
+            Subscriptions</a>
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="dashboard-header">
+            <h2>{% block page_title %}Dashboard{% endblock %}</h2>
+        </div>
+        
+            <div class="user-avatar">
+                <img src="{% static 'dashboard/img/user.png' %}" alt="{{ user.username }}">
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script>
+        function toggleNotifications() {
+            document.getElementById('notificationsDropdown').classList.toggle('active');
+        }
+
+        window.onclick = function (event) {
+            if (!event.target.closest('.notifications')) {
+                document.getElementById('notificationsDropdown').classList.remove('active');
+            }
+        };
+    </script>
+</body>
+
+</html>

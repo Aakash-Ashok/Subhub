@@ -1,0 +1,142 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Notification Details{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #f8f9fc;
+        font-family: "Poppins", sans-serif;
+    }
+
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px;
+    }
+
+    .content-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #2a908f;
+    }
+
+    .notification-details {
+        background-color: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .notification-details h2 {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 25px;
+        color: #2a908f;
+        text-align: center;
+    }
+
+    .notification-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .notification-table td {
+        padding: 14px 10px;
+        font-size: 15px;
+        border-bottom: 1px solid #eee;
+        vertical-align: top;
+    }
+
+    .notification-table td:first-child {
+        font-weight: 600;
+        color: #333;
+        width: 25%;
+    }
+
+    .notification-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .btn {
+        display: inline-block;
+        margin-top: 25px;
+        background-color: #2a908f;
+        color: white;
+        padding: 12px 18px;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+
+    .btn:hover {
+        background-color: #247e7d;
+    }
+
+    @media (max-width: 768px) {
+        .notification-details {
+            padding: 20px;
+        }
+
+        .notification-table td {
+            font-size: 13px;
+            display: block;
+            width: 100%;
+        }
+
+        .notification-table tr {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .notification-table td:first-child {
+            width: 100%;
+            margin-bottom: 4px;
+        }
+    }
+</style>
+
+<div class="content-header">
+    <h1>Hello User</h1>
+    <div>{% now "d N Y" %}</div>
+</div>
+
+<div class="notification-details">
+    <h2>Notification Details</h2>
+    <table class="notification-table">
+        <tr>
+            <td>Title:</td>
+            <td>{{ notification.title }}</td>
+        </tr>
+        <tr>
+            <td>Recipient:</td>
+            <td>{{ notification.recipient }}</td>
+        </tr>
+        <tr>
+            <td>Date:</td>
+            <td>{{ notification.date_sent|date:"d M Y, h:i A" }}</td>
+        </tr>
+        <tr>
+            <td>Type:</td>
+            <td>{{ notification.type }}</td>
+        </tr>
+        <tr>
+            <td>Details:</td>
+            <td>{{ notification.details }}</td>
+        </tr>
+    </table>
+
+    <div style="text-align:center;">
+        <a href="{% url 'notifications' %}" class="btn">← Go Back</a>
+    </div>
+</div>
+{% endblock %}

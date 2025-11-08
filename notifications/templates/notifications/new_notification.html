@@ -1,0 +1,130 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}New Notification{% endblock %}
+
+{% block content %}
+<style>
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .content-header h1 {
+        font-size: 28px;
+        color: #2a908f;
+        margin: 0;
+    }
+
+    .content-header div {
+        font-size: 16px;
+        color: #555;
+    }
+
+     .btn-create {
+        
+        margin: 20px auto;
+        background-color: #ff0000;
+        color: rgb(255, 255, 255);
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background-color 0.2s;
+        cursor: pointer;
+    }
+
+    .btn-create:hover {
+        background-color: #ff0000;
+    }
+
+    .notification-form-container {
+        max-width: 600px;
+        margin: 0 auto 50px auto;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .notification-form-container h2 {
+        font-size: 24px;
+        margin-bottom: 25px;
+        color: #2a908f;
+    }
+
+    form p {
+        text-align: left;
+        margin-bottom: 15px;
+        font-size: 16px;
+        color: #333;
+    }
+
+    .btn-primary {
+        color: #fff;
+        background-color: #2a908f;
+        border: 1px solid #2a908f;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background-color 0.2s;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        background-color: #165c5b;
+    }
+
+    /* Messages styling */
+    ul {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 20px;
+    }
+
+    ul li {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        text-align: left;
+    }
+
+    ul li.success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    ul li.warning {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+</style>
+
+<div class="content-header">
+    <h1>Hello User</h1>
+    <div>{% now "d N Y" %}</div>
+</div>
+
+<div class="notification-form-container">
+    <h2>Send New Notification</h2>
+
+    <!-- Display messages -->
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <form method="post" action="{% url 'new_notification' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Send</button>
+        <a href="{% url 'notifications' %}" class="btn-create">Go Back</a>
+    </form>
+</div>
+{% endblock %}

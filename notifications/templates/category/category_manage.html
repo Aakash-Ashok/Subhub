@@ -1,0 +1,257 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Manage Categories{% endblock %}
+
+{% block content %}
+<style>
+    /* Page Container */
+    .category-page {
+        background: #f5f7f8;
+        padding: 30px;
+        border-radius: 10px;
+        min-height: 735px;
+    }
+
+    /* Header */
+    .category-page h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2a908f;
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 3px solid #2a908f;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    /* Form Card */
+    .category-form {
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .category-form form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .category-form input,
+    .category-form select,
+    .category-form textarea {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .category-form input:focus,
+    .category-form select:focus,
+    .category-form textarea:focus {
+        border-color: #2a908f;
+        box-shadow: 0 0 6px rgba(42, 144, 143, 0.4);
+        outline: none;
+    }
+
+    .category-form button,
+    .category-form a.cancel-btn {
+        padding: 10px 20px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .category-form button {
+        background-color: #2a908f;
+        color: #fff;
+    }
+
+    .category-form button:hover {
+        background-color: #237472;
+        transform: translateY(-2px);
+    }
+
+    .category-form a.cancel-btn {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .category-form a.cancel-btn:hover {
+        background-color: #b02a37;
+        transform: translateY(-2px);
+    }
+
+    /* Table Styling */
+    .category-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 16px;
+        background-color: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .category-table th {
+        background-color: #2a908f;
+        color: #fff;
+        text-align: left;
+        padding: 12px 15px;
+    }
+
+    .category-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .category-table tr:hover {
+        background-color: #f2f8f8;
+        transition: 0.2s ease;
+    }
+
+    /* Action Buttons */
+    .action-btn {
+        padding: 6px 12px;
+        border-radius: 6px;
+        color: #fff;
+        text-decoration: none;
+        font-size: 14px;
+        margin-right: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .edit-btn {
+        background-color: #4caf50;
+    }
+
+    .edit-btn:hover {
+        background-color: #3b8e40;
+    }
+
+    .delete-btn {
+        background-color: #dc3545;
+    }
+
+    .delete-btn:hover {
+        background-color: #b02a37;
+    }
+
+    /* Empty Table Message */
+    .category-table td[colspan] {
+        text-align: center;
+        color: #555;
+        font-style: italic;
+    }
+
+    /* Responsive Table */
+    @media (max-width: 768px) {
+        .category-table {
+            font-size: 14px;
+        }
+
+        .category-form {
+            width: 100%;
+            padding: 20px;
+        }
+    }
+</style>
+
+<div class="category-page">
+
+    <h1>Manage Categories</h1>
+
+    <!-- Add / Edit Form -->
+    <div class="category-form">
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- Name -->
+            <p>
+                <label for="id_name">Name:</label><br>
+                {{ form.name }}
+            </p>
+
+            <!-- Category Dropdown -->
+            <p>
+                <label for="id_category">Category:</label><br>
+                <select name="category" id="id_category" required>
+                    <option value="" disabled {% if not form.category.value %}selected{% endif %}>Select a category</option>
+                    <option value="tech" {% if form.category.value == "tech" %}selected{% endif %}>Technology</option>
+                    <option value="design" {% if form.category.value == "design" %}selected{% endif %}>Design</option>
+                    <option value="business" {% if form.category.value == "business" %}selected{% endif %}>Business</option>
+                    <option value="education" {% if form.category.value == "education" %}selected{% endif %}>Education</option>
+                    <option value="health" {% if form.category.value == "health" %}selected{% endif %}>Health</option>
+                    <option value="finance" {% if form.category.value == "finance" %}selected{% endif %}>Finance</option>
+                    <option value="marketing" {% if form.category.value == "marketing" %}selected{% endif %}>Marketing</option>
+                    <option value="other" {% if form.category.value == "other" %}selected{% endif %}>Other</option>
+                </select>
+            </p>
+
+
+            <!-- Description -->
+            <p>
+                <label for="id_description">Description:</label><br>
+                {{ form.description }}
+            </p>
+
+            <!-- Buttons -->
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="submit">
+                    {% if form.instance.pk %} Update {% else %} Add {% endif %} Category
+                </button>
+
+                {% if form.instance.pk %}
+                <a href="{% url 'category_manage' %}" class="cancel-btn">Cancel</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Category List -->
+    <table class="category-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th style="width: 150px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td>{{ category.id }}</td>
+                <td>{{ category.category }}</td>
+                <td>{{ category.name }}</td>
+                <td>{{ category.description }}</td>
+                <td>
+                    <a href="{% url 'category_manage' %}?edit={{ category.id }}" class="action-btn edit-btn">Edit</a>
+                    <a href="{% url 'category_manage' %}?delete={{ category.id }}"
+                        onclick="return confirm('Are you sure you want to delete {{ category.name }}?')"
+                        class="action-btn delete-btn">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No categories available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

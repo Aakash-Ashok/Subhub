@@ -1,0 +1,123 @@
+{% extends "dashboard/cusbase_dashboard.html" %}
+
+{% block title %}My Subscriptions{% endblock %}
+{% block page_title %}My Subscriptions{% endblock %}
+
+{% block content %}
+{% if subscriptions %}
+<div class="charts" style="flex-direction:column; gap:15px;">
+    {% for sub in subscriptions %}
+    <div class="dashboard-card">
+        <h3>{{ sub.plan.name }}</h3>
+        <p><strong>Start Date:</strong> {{ sub.start_date }}</p>
+        <p><strong>End Date:</strong> {{ sub.end_date|date:"Y-m-d" }}</p>
+        <p><strong>Status:</strong> {{ sub.subscription_status }}</p>
+        {% if sub.days_left is not None %}
+        {% if sub.days_left == 0 %}
+        <p class="expired"><strong>Days Left:</strong> Expired</p>
+        {% else %}
+        <p class="days-left"><strong>Days Left:</strong> {{ sub.days_left }} days</p>
+        {% endif %}
+        {% endif %}
+        <p><strong>Payment Method:</strong> {{ sub.get_payment_method_display }}</p>
+        <p><strong>Next Due Date:</strong> {{ sub.next_due_date|date:"Y-m-d" }}</p>
+
+        <div style="margin-top:10px; display:flex; gap:10px;">
+            <a href="{% url 'cancel_subscription' sub.id %}" class="subscribe-btn"
+                style="background:#d9534f;">Cancel</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p>You have no subscriptions at the moment.</p>
+{% endif %}
+
+<style>
+    .dashboard-card {
+        background-color: #ffffff;
+        padding: 25px 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 20px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(42, 144, 143, 0.2);
+    }
+
+    .dashboard-card h3 {
+        color: #2a908f;
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .dashboard-card p {
+        font-size: 15px;
+        color: #333333;
+        margin: 5px 0;
+    }
+
+    .subscribe-btn {
+        padding: 8px 16px;
+        background-color: #2a908f;
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .subscribe-btn:hover {
+        background-color: #237776;
+        transform: translateY(-2px);
+    }
+
+    .subscribe-btn[style*="background:#d9534f"] {
+        background-color: #d9534f;
+    }
+
+    .subscribe-btn[style*="background:#d9534f"]:hover {
+        background-color: #c9302c;
+    }
+
+    .days-left {
+        font-weight: bold;
+        color: #f0ad4e;
+        /* warm yellow/orange */
+    }
+
+    .expired {
+        font-weight: bold;
+        color: #d9534f;
+        /* red */
+    }
+
+    .charts {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    @media (max-width: 600px) {
+        .dashboard-card {
+            padding: 20px;
+        }
+
+        .dashboard-card div[style*="display:flex"] {
+            flex-direction: column;
+        }
+
+        .subscribe-btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+{% endblock %}

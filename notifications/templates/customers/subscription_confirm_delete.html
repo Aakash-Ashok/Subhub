@@ -1,0 +1,92 @@
+{% extends "dashboard/cusbase_dashboard.html" %}
+
+{% block title %}Delete Subscription{% endblock %}
+{% block page_title %}Delete Subscription{% endblock %}
+
+{% block content %}
+<style>
+    /* Card styling */
+    .confirmation-card {
+        max-width: 600px;
+        margin: 50px auto;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.2s;
+    }
+
+    .confirmation-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .confirmation-card h2 {
+        font-size: 26px;
+        margin-bottom: 15px;
+        color: #2a908f;
+    }
+
+    .confirmation-card p {
+        font-size: 16px;
+        margin-bottom: 25px;
+        color: #333;
+    }
+
+    /* Buttons */
+    .btn-warning {
+        color: #fff;
+        background-color: #2a908f;
+        border: 1px solid #2a908f;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+
+    .btn-warning:hover {
+        background-color: #165c5b;
+    }
+
+    .btn-secondary {
+        color: #fff;
+        background-color: #6c757d;
+        border: 1px solid #6c757d;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+
+    .btn-secondary:hover {
+        background-color: #545b62;
+    }
+
+    /* Optional image below the form */
+    .confirmation-card img {
+        margin-top: 25px;
+        max-width: 150px;
+    }
+
+    @media (max-width: 768px) {
+        .confirmation-card {
+            margin: 30px 15px;
+            padding: 20px;
+        }
+    }
+</style>
+
+<div class="confirmation-card">
+    <h2>Confirm Deletion</h2>
+    <p>Are you sure you want to delete the subscription for <strong>{{ object.plan.name }}</strong>?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-warning" style="margin-right: 10px;">Yes, delete</button>
+        <a href="{% url 'customer_subscriptions' %}" class="btn btn-secondary">No, cancel</a>
+    </form>
+
+    
+</div>
+
+{% endblock %}

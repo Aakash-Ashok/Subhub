@@ -1,0 +1,214 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Search Notifications{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #f8f9fc;
+        font-family: "Poppins", sans-serif;
+    }
+
+    .planslist-container {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        margin-top: 30px;
+    }
+
+    .planslist-container h2 {
+        color: #2a908f;
+        font-weight: 600;
+        font-size: 24px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    /* ===== Search Bar ===== */
+    .search-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 25px;
+    }
+
+    .search-container input[type="text"] {
+        width: 300px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        font-size: 14px;
+        transition: 0.3s;
+    }
+
+    .search-container input[type="text"]:focus {
+        border-color: #2a908f;
+        box-shadow: 0 0 0 2px rgba(42, 144, 143, 0.1);
+        outline: none;
+    }
+
+    .search-container button {
+        border: none;
+        background-color: #2a908f;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .search-container button:hover {
+        background-color: #247e7d;
+    }
+
+    .search-container img {
+        width: 18px;
+        height: 18px;
+        filter: brightness(0) invert(1);
+    }
+
+    /* ====== Table ====== */
+    .planslist-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .planslist-table th {
+        background-color: #2a908f;
+        color: white;
+        padding: 14px 12px;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    .planslist-table td {
+        padding: 14px 12px;
+        font-size: 14px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .planslist-table tr:hover td {
+        background-color: #f5fafa;
+    }
+
+    .btn-view {
+        background-color: #2a908f;
+        padding: 8px 14px;
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+
+    .btn-view:hover {
+        background-color: #247e7d;
+    }
+
+    /* ===== Messages ===== */
+    p {
+        text-align: center;
+        font-size: 15px;
+        color: #444;
+    }
+
+    p strong {
+        color: #2a908f;
+    }
+
+    .btn-create {
+        display: block;
+        width: fit-content;
+        margin: 20px auto;
+        background-color: #2a908f;
+        color: white;
+        padding: 12px 20px;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: 0.3s;
+        text-align: center;
+    }
+
+    .btn-create:hover {
+        background-color: #247e7d;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+        .search-container {
+            flex-direction: column;
+        }
+
+        .search-container input[type="text"] {
+            width: 100%;
+        }
+
+        .planslist-table th,
+        .planslist-table td {
+            font-size: 13px;
+            padding: 10px;
+        }
+    }
+</style>
+
+<div class="planslist-container">
+    <h2>Sent Notifications</h2>
+
+    <!-- Search bar -->
+    <form method="POST" action="{% url 'search_noti' %}">
+        {% csrf_token %}
+        <div class="search-container">
+            <input type="text" placeholder="Search for Notification" name="searched">
+            <button type="submit">
+                <img class="img" src="{% static 'notifications/img/search-2.svg' %}" />
+            </button>
+        </div>
+    </form>
+
+    <!-- Results -->
+    {% if searched %}
+    <p>You searched for: <strong>{{ searched }}</strong></p>
+
+    {% if notifications %}
+    <table class="planslist-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Recipient</th>
+                <th>Date Sent</th>
+                <th>View</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for notification in notifications %}
+            <tr>
+                <td>{{ notification.title }}</td>
+                <td>{{ notification.type }}</td>
+                <td>{{ notification.recipient }}</td>
+                <td>{{ notification.date_sent|date:"d M Y, h:i A" }}</td>
+                <td><a href="{% url 'detail' notification.id %}" class="btn-view">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No notifications matched your search.</p>
+    {% endif %}
+    {% else %}
+    <p>Hey! You forgot to search!</p>
+   
+    {% endif %}
+<a href="{% url 'notifications' %}" class="btn-create">Go Back</a>
+</div>
+{% endblock %}

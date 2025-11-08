@@ -1,0 +1,24 @@
+{% extends "dashboard/cusbase_dashboard.html" %}
+{% block title %}{{ category_type|capfirst }} Categories{% endblock %}
+
+{% block content %}
+<div style="padding:30px;">
+    <h2 style="color:#2a908f; text-align:center;">Categories in "{{ category_type|capfirst }}"</h2>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:20px; margin-top:30px;">
+        {% for cat in categories %}
+        <div style="background:#ffffff; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+            <h3 style="color:#2a908f;">{{ cat.name }}</h3>
+            <p>{{ cat.description|default:"No description available." }}</p>
+            <p><strong>Category Type:</strong> {{ cat.category|capfirst }}</p>
+            <a href="{% url 'plans_by_category' cat.id %}"
+                style="display:inline-block; margin-top:10px; padding:8px 16px; background:#2a908f; color:white; border-radius:6px; text-decoration:none;">
+                View Plans
+            </a>
+        </div>
+        {% empty %}
+        <p style="text-align:center; color:#777;">No categories available.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

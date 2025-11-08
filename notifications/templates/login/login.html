@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In - Subhub</title>
+    <style>
+        /* General styling */
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f7;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Left branding */
+        .left {
+            flex: 1;
+            background-color: #2a908f;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .left h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .left p {
+            font-size: 18px;
+        }
+
+        /* Right form */
+        .right {
+            flex: 1;
+            background-color: white;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .right h2 {
+            color: #2a908f;
+            font-size: 28px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        /* Form fields */
+        .right form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .input-container input {
+            width: 100%;
+            padding: 12px 40px 12px 45px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-container input:focus {
+            outline: none;
+            border-color: #2a908f;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: #2a908f;
+        }
+
+        .show-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 18px;
+            color: #2a908f;
+        }
+
+        /* Submit button */
+        .right button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            background-color: #2a908f;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .right button:hover {
+            background-color: #237776;
+            transform: translateY(-2px);
+        }
+
+        /* Links */
+        .forgot-password,
+        .signup-button {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .forgot-password a,
+        .signup-button a {
+            color: #2a908f;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-password a:hover,
+        .signup-button a:hover {
+            text-decoration: underline;
+        }
+
+        /* Error messages */
+        .right input+.errorlist,
+        .right .errorlist,
+        .messages {
+            color: #d9534f;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .left,
+            .right {
+                flex: none;
+                width: 100%;
+            }
+
+            .right {
+                padding: 40px 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Left Branding -->
+        <div class="left">
+            <h1>SUBHUB</h1>
+            <p>All-in-One Subscription Manager</p>
+        </div>
+
+        <!-- Right Form -->
+        <div class="right">
+            <h2>Log In</h2>
+
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+
+                <!-- Non-field errors -->
+                {% if form.non_field_errors %}
+                <div class="errorlist">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <!-- Messages -->
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Email -->
+                <div class="input-container">
+                    <span class="input-icon">📧</span>
+                    {{ form.email.errors }}
+                    <input type="email" name="email" placeholder="Enter Email"
+                        value="{{ form.email.value|default:'' }}">
+                </div>
+
+                <!-- Password -->
+                <div class="input-container">
+                    <span class="input-icon">🔒</span>
+                    {{ form.password.errors }}
+                    <input type="password" id="password" name="password" placeholder="Enter Password"
+                        value="{{ form.password.value|default:'' }}">
+                    <span class="show-password" onclick="togglePassword('password')">👁️</span>
+                </div>
+
+                <!-- Remember Me -->
+                <div style="margin-bottom: 10px;">
+                    <input type="checkbox" name="remember_me" id="remember_me">
+                    <label for="remember_me">Remember Me</label>
+                </div>
+
+                <button type="submit">Log In</button>
+            </form>
+
+            <div class="forgot-password">
+                <a href="{% url 'password_reset' %}">Forgot Password?</a>
+            </div>
+            <div class="signup-button">
+                <a href="{% url 'signup' %}">Don't have an account? Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toggle password visibility -->
+    <script>
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            field.type = field.type === "password" ? "text" : "password";
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,279 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} Plan{% endblock %}
+
+{% block content %}
+<style>
+    /* Container */
+    .plan-container {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        max-width: 800px;
+        margin: 30px auto;
+    }
+
+    /* Heading */
+    .plan-container h2 {
+        font-size: 24px;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 20px;
+        text-align: center;
+        border-bottom: 3px solid #2a908f;
+        padding-bottom: 10px;
+    }
+
+    /* Error Message Box */
+    .error-box {
+        background-color: #ffe5e5;
+        border: 1px solid #ff5c5c;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 25px;
+        color: #a80000;
+    }
+
+    /* Form Styling */
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #444;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #2a908f;
+        outline: none;
+        box-shadow: 0 0 5px rgba(42, 144, 143, 0.4);
+    }
+
+    /* Final Price & Discount */
+    .final-box {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-top: 15px;
+        display: flex;
+        justify-content: space-between;
+        font-weight: 600;
+        color: #2a908f;
+    }
+
+    /* Button Group */
+    .btn-group {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 25px;
+    }
+
+    .btn-save,
+    .btn-back {
+        padding: 10px 22px;
+        font-weight: bold;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save {
+        background-color: #2a908f;
+        color: #fff;
+    }
+
+    .btn-save:hover {
+        background-color: #237472;
+        transform: translateY(-2px);
+    }
+
+    .btn-back {
+        background-color: #888;
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .btn-back:hover {
+        background-color: #666;
+        transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+        .plan-container {
+            padding: 20px;
+        }
+
+        .btn-group {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+</style>
+
+<div class="plan-container">
+    <h2>{% if form.instance.pk %}Edit{% else %}Create{% endif %} Plan</h2>
+
+    {% if form.errors %}
+    <div class="error-box">
+        <ul>
+            {% for field in form %}
+            {% for error in field.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" id="planForm">
+        {% csrf_token %}
+
+        {% for field in form %}
+        <div class="form-group">
+            {{ field.label_tag }}
+            {{ field }}
+        </div>
+        {% endfor %}
+
+        <div class="final-box">
+            <span>Final Price:</span>
+            <span class="final-price">{{ form.instance.final_price }}</span>
+        </div>
+
+        <div class="final-box">
+            <span>Discount Status:</span>
+            <span class="discount-status">{{ form.instance.discount_status }}</span>
+        </div>
+
+        <div class="btn-group">
+            <button type="submit" class="btn-save">💾 Save</button>
+            <a href="{% url 'plan_list' %}" class="btn-back">↩ Back</a>
+        </div>
+    </form>
+</div>
+
+<!-- jQuery Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+<script>
+    $(function () {
+        // helper: find input by id first, then by name fallback
+        function findField(id, name) {
+            var $el = $('#' + id);
+            if ($el.length) return $el;
+            $el = $('input[name="' + name + '"]');
+            if ($el.length) return $el;
+            $el = $('input[name$="' + name + '"]'); // fallback: endswith
+            return $el;
+        }
+
+        // find price and discount inputs (robust to different renderings)
+        var $price = findField('id_price', 'price');
+        var $discount = findField('id_discount_percent', 'discount_percent');
+
+        // if form widgets are different types (e.g. DecimalField uses input), handle selects/textarea too
+        if (!$price.length) $price = $('input, select, textarea').filter('[name*="price"]').first();
+        if (!$discount.length) $discount = $('input, select, textarea').filter('[name*="discount"]').first();
+
+        // final price element
+        var $final = $('.final-price');
+
+        // safely parse numeric value from input (handles commas, currency)
+        function parseNumber(val) {
+            if (val === null || typeof val === 'undefined') return NaN;
+            // remove anything that's not digit, dot, minus
+            val = String(val).replace(/,/g, '').replace(/[^\d.\-]/g, '');
+            if (val === '') return NaN;
+            return parseFloat(val);
+        }
+
+        function computeFinal() {
+            var priceVal = parseNumber($price.val && $price.val() || $price.text && $price.text() || '');
+            var discountVal = parseNumber($discount.val && $discount.val() || $discount.text && $discount.text() || '');
+
+            if (isNaN(priceVal)) {
+                $final.text('N/A');
+                return;
+            }
+            if (isNaN(discountVal)) discountVal = 0;
+
+            var finalPrice = priceVal - (priceVal * discountVal / 100);
+            // ensure non-negative and 2 decimals
+            if (isNaN(finalPrice) || !isFinite(finalPrice)) {
+                $final.text('N/A');
+            } else {
+                $final.text(finalPrice.toFixed(2));
+            }
+        }
+
+        // init: compute when DOM ready
+        computeFinal();
+
+        // update on input/change (cover <input>, <select>, contenteditable, etc.)
+        function attachEvents($el) {
+            if (!$el || !$el.length) return;
+            $el.on('input change blur', function () {
+                computeFinal();
+            });
+        }
+        attachEvents($price);
+        attachEvents($discount);
+
+        // your existing datepicker init & validation (kept)
+        if ($.datepicker) {
+            $('.datepicker').datepicker({
+                dateFormat: 'yy-mm-dd',
+                autoclose: true,
+                todayHighlight: true
+            });
+        }
+
+        $('#planForm').on('submit', function (e) {
+            var discountPercent = parseNumber($discount.val && $discount.val() || '');
+            var activatedDate = $('#id_discount_activated_date').val();
+            var deactivatedDate = $('#id_discount_deactivated_date').val();
+
+            if (discountPercent && (!activatedDate || !deactivatedDate)) {
+                e.preventDefault();
+                alert('Please select both discount activation and deactivation dates.');
+                return false;
+            }
+
+            // optional: enforce numeric price
+            var priceVal = parseNumber($price.val && $price.val() || '');
+            if (isNaN(priceVal)) {
+                e.preventDefault();
+                alert('Please enter a valid numeric Price.');
+                return false;
+            }
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,223 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Subhub Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    /* Dashboard Container */
+    .dashboard-container {
+        padding: 30px;
+        background-color: #f5f7f8;
+        min-height: 735px;
+        font-family: 'Lexend Deca', sans-serif;
+    }
+
+    /* Header */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 32px;
+        color: #2a908f;
+        font-weight: 700;
+    }
+
+    .dashboard-header .date {
+        font-size: 18px;
+        color: #333;
+        font-weight: 500;
+    }
+
+    /* Cards Layout */
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .card {
+        background-color: #2a908f;
+        color: #ffffff;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
+    }
+
+    .card h2 {
+        font-size: 22px;
+        margin-bottom: 10px;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+        padding-bottom: 5px;
+    }
+
+    .card p {
+        font-size: 16px;
+        margin: 8px 0;
+    }
+
+    .card ul {
+        margin-top: 10px;
+        padding-left: 20px;
+    }
+
+    .card li {
+        font-size: 15px;
+        margin-bottom: 6px;
+    }
+
+    /* Charts Layout */
+    .charts-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    .chart-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .chart-card h3 {
+        color: #2a908f;
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .charts-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>Hello, {{ user.username }}</h1>
+        <div class="date">{% now "d N Y" %}</div>
+    </div>
+
+    <!-- Cards Section -->
+    <div class="dashboard-cards">
+        <!-- At A Glance -->
+        <div class="card">
+            <h2>At A Glance</h2>
+            <p>Total Customers: <strong>{{ total_customers }}</strong></p>
+            <p>Total Revenue: <strong>₹{{ total_revenue }}</strong></p>
+            <p>Active Subscriptions: <strong>{{ total_customers }}</strong></p>
+            <p>Subscription Plans: <strong>{{ total_plans }}</strong></p>
+        </div>
+
+        <!-- Metrics & Transactions -->
+        <div class="card">
+            <h2>Metrics & Transactions</h2>
+            <p>New Subscriptions This Month: <strong>{{ new_subscriptions }}</strong></p>
+            <p>Churn Rate: <strong>{{ churn_rate }}%</strong></p>
+            <p>ARPU: <strong>₹{{ arpu }}</strong></p>
+            <p>MRR: <strong>₹{{ mrr }}</strong></p>
+
+            <p style="margin-top: 12px;">Recent Transactions:</p>
+            <ul>
+                {% for transaction in recent_transactions %}
+                <li>
+                    {{ transaction.customer.username }} - {{ transaction.plan.name }} - ₹{{ transaction.plan.price }} -
+                    {{ transaction.start_date }}
+                </li>
+                {% empty %}
+                <li>No recent transactions.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-container">
+        <div class="chart-card">
+            <h3>Subscription Trends</h3>
+            <canvas id="subscriptionChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Revenue Trends</h3>
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const subscriptionCtx = document.getElementById('subscriptionChart').getContext('2d');
+
+    // Revenue Chart
+    const revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: {{ revenue_labels| safe }},
+    datasets: [{
+        label: 'Revenue',
+        data: {{ revenue_data| safe }},
+        borderColor: '#2a908f',
+        borderWidth: 2,
+        pointBackgroundColor: '#2a908f',
+        fill: false,
+        tension: 0.3
+            }]
+        },
+    options: {
+        responsive: true,
+            scales: {
+            x: { title: { display: true, text: 'Month' } },
+            y: { title: { display: true, text: 'Revenue (₹)' }, beginAtZero: true }
+        }
+    }
+    });
+
+    // Subscription Chart
+    const subscriptionChart = new Chart(subscriptionCtx, {
+        type: 'line',
+        data: {
+            labels: {{ subscription_labels| safe }},
+    datasets: [{
+        label: 'Subscriptions',
+        data: {{ subscription_data| safe }},
+        borderColor: '#2a908f',
+        borderWidth: 2,
+        pointBackgroundColor: '#2a908f',
+        fill: false,
+        tension: 0.3
+            }]
+        },
+    options: {
+        responsive: true,
+            scales: {
+            x: { title: { display: true, text: 'Month' } },
+            y: { title: { display: true, text: 'Subscriptions' }, beginAtZero: true }
+        }
+    }
+    });
+</script>
+{% endblock %}

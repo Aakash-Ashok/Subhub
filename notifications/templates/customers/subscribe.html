@@ -1,0 +1,104 @@
+{% extends "dashboard/cusbase_dashboard.html" %}
+
+{% block title %}Subscribe to {{ plan.name }}{% endblock %}
+{% block page_title %}Subscribe to {{ plan.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-card" style="max-width:600px; margin:auto;">
+    <h2>{{ plan.name }}</h2>
+    <p><strong>Price:</strong> ₹{{ plan.final_price }}</p>
+    <p>{{ plan.details }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button type="submit" class="subscribe-btn">Subscribe</button>
+            <a href="{% url 'plans_by_category' plan.category.id %}" class="subscribe-btn" style="background:#777;">Back</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    /* Card styling */
+    .dashboard-card {
+        background-color: #ffffff;
+        padding: 25px 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        text-align: center;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(42, 144, 143, 0.2);
+    }
+
+    /* Heading */
+    .dashboard-card h2 {
+        color: #2a908f;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    /* Paragraph text */
+    .dashboard-card p {
+        font-size: 16px;
+        color: #333333;
+        margin: 8px 0;
+    }
+
+    /* Buttons */
+    .subscribe-btn {
+        padding: 10px 18px;
+        background-color: #2a908f;
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .subscribe-btn:hover {
+        background-color: #237776;
+        transform: translateY(-2px);
+    }
+
+    /* Back button variant */
+    .subscribe-btn.back {
+        background-color: #777777;
+    }
+
+    .subscribe-btn.back:hover {
+        background-color: #555555;
+    }
+
+    /* Form spacing */
+    form {
+        margin-top: 20px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+        .dashboard-card {
+            padding: 20px;
+        }
+
+        .subscribe-btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .dashboard-card form div {
+            flex-direction: column;
+        }
+    }
+</style>
+
+{% endblock %}

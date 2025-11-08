@@ -1,0 +1,188 @@
+{% extends "dashboard/cusbase_dashboard.html" %}
+
+{% block title %}Customer Dashboard{% endblock %}
+{% block page_title %}Hello {{ user.username }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Dashboard Cards */
+    .dashboard-card {
+        background: #ffffff;
+        padding: 25px 30px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 15px rgba(42, 144, 143, 0.2);
+    }
+
+    .dashboard-card h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #2a908f;
+        margin-bottom: 15px;
+    }
+
+    .dashboard-card p {
+        font-size: 15px;
+        margin: 6px 0;
+        color: #444;
+    }
+
+    .days-left {
+        color: #28a745;
+        font-weight: 600;
+    }
+
+    .expired {
+        color: #d9534f;
+        font-weight: 600;
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    /* Buttons */
+    .subscribe-btn {
+        padding: 8px 16px;
+        background-color: #2a908f;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .subscribe-btn:hover {
+        background-color: #237776;
+        transform: translateY(-2px);
+    }
+
+    .cancel-btn {
+        background-color: #d9534f;
+    }
+
+    .cancel-btn:hover {
+        background-color: #c9302c;
+    }
+
+    /* Charts */
+    .charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+</style>
+
+<!-- Greeting -->
+
+            <!-- Active Subscriptions -->
+            <div class="dashboard-card">
+                <h2>Active Subscriptions</h2>
+                {% if active_subscriptions %}
+                <div class="cards-grid">
+                    {% for sub in active_subscriptions %}
+                    <div class="dashboard-card">
+                        <p><strong>Plan:</strong> {{ sub.plan.name }}</p>
+                        <p><strong>Price:</strong> ₹{{ sub.plan.final_price }}</p>
+                        <p><strong>Status:</strong> {{ sub.subscription_status }}</p>
+                        <p><strong>Start Date:</strong> {{ sub.start_date }}</p>
+                        <p><strong>End Date:</strong> {{ sub.end_date|date:"Y-m-d" }}</p>
+                        {% if sub.days_left == 0 %}
+                        <p class="expired"><strong>Days Left:</strong> Expired (0 days)</p>
+                        {% else %}
+                        <p class="days-left"><strong>Days Left:</strong> {{ sub.days_left }} days</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>You do not have any active subscriptions.</p>
+                {% endif %}
+            </div>
+
+            <!-- Pending Payments -->
+            <div class="dashboard-card">
+                <h2>Pending Payments</h2>
+                {% if pending_payments %}
+                <div class="cards-grid">
+                    {% for sub in pending_payments %}
+                    <div class="dashboard-card">
+                        <p><strong>Plan:</strong> {{ sub.plan.name }}</p>
+                        <p><strong>Due Amount:</strong> ₹{{ sub.plan.final_price }}</p>
+                        <p><strong>Due Date:</strong> {{ sub.end_date|date:"Y-m-d" }}</p>
+                        {% if sub.days_left == 0 %}
+                        <p class="expired"><strong>Days Left:</strong> Expired (0 days)</p>
+                        {% else %}
+                        <p class="days-left"><strong>Days Left:</strong> {{ sub.days_left }} days</p>
+                        {% endif %}
+                        <a href="{% url 'pay_subscription' sub.id %}" class="subscribe-btn cancel-btn">Pay Now</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>No pending payments.</p>
+                {% endif %}
+            </div>
+
+            <!-- Charts -->
+            <div class="charts">
+                <div class="dashboard-card">
+                    <h2>Subscription Trends</h2>
+                    <canvas id="subscriptionChart"></canvas>
+                </div>
+                <div class="dashboard-card">
+                    <h2>Payment Trends</h2>
+                    <canvas id="paymentChart"></canvas>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                const subscriptionCtx = document.getElementById('subscriptionChart').getContext('2d');
+                const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+
+                new Chart(subscriptionCtx, {
+                    type: 'line',
+                    data: {
+                        labels: {{ subscription_labels| safe }},
+                    datasets: [{
+                        label: 'Subscriptions',
+                        data: {{ subscription_data| safe }},
+                    borderColor: '#2a908f',
+                    backgroundColor: 'rgba(42,144,143,0.15)',
+                    tension: 0.3,
+                    fill: true
+        }]
+    },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+                new Chart(paymentCtx, {
+                    type: 'line',
+                    data: {
+                        labels: {{ payment_labels| safe }},
+                    datasets: [{
+                        label: 'Pending Payments',
+                        data: {{ payment_data| safe }},
+                    borderColor: '#d9534f',
+                    backgroundColor: 'rgba(217,83,79,0.15)',
+                    tension: 0.3,
+                    fill: true
+        }]
+    },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+            </script>
+            {% endblock %}
