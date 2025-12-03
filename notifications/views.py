@@ -418,15 +418,13 @@ def LKJH_view(request):
 # --------------------------
 # Authentication Views
 # --------------------------
+# notifications/views.py (signup_view)
 def signup_view(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])
-            user.save()
-
-            # Create appropriate profile manually
+            user = form.save()  # save handles set_password()
+            # Create profile
             if user.role == 'customer':
                 CustomerProfile.objects.create(
                     user=user,
@@ -435,13 +433,13 @@ def signup_view(request):
                     city=form.cleaned_data.get('city', ''),
                     pin_code=form.cleaned_data.get('pin_code', '')
                 )
-            else:  # Admin role
+            else:
                 AdminProfile.objects.create(user=user)
-
             return redirect('login')
     else:
         form = SignUpForm()
     return render(request, 'sign_up/signup.html', {'form': form})
+
 
 
 
@@ -535,61 +533,164 @@ def send_sms_via_msg91(phone, message):
 
 
 
-# ✅ Create new notification (SMS or Email)
+# notifications/views.py (snippet)
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .forms import NotificationForm
+from .models import Notification, User
+from .utils import send_and_update_notification
+
+# notifications/views.py
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .forms import NotificationForm
+from .models import Notification, User
+from .utils import send_and_update_notification
+from django.db import transaction
+
 def new_notification_view(request):
+    """
+    Admin view to send a notification. This implementation avoids creating a
+    'template' Notification row that duplicates per-user notifications.
+    - For single recipient: create one Notification and send it.
+    - For broadcast: create per-user Notification rows only.
+    """
     if request.method == 'POST':
         form = NotificationForm(request.POST)
-        if form.is_valid():
-            phone = form.cleaned_data['recipient']
-            message = form.cleaned_data['details']
+        send_to_all = request.POST.get('send_to_all') == 'yes'  # adapt to your form field
 
-            success = send_sms_via_msg91(phone, message)
-            if success:
-                form.save()
-                messages.success(request, "✅ SMS sent successfully via MSG91!")
+        if form.is_valid():
+            # Do NOT save the form as a template row to avoid duplicates.
+            cleaned = form.cleaned_data
+
+            title = cleaned['title']
+            notif_type = cleaned['type']
+            details = cleaned['details']
+            recipient_value = cleaned.get('recipient')  # can be email for single send
+
+            if send_to_all:
+                # Broadcast: create per-user notification rows and send synchronously
+                users = User.objects.filter(role='customer').only('id', 'email')
+                sent = 0
+                failed = 0
+
+                # Use a DB transaction to avoid partial states if you want
+                with transaction.atomic():
+                    for user in users.iterator():
+                        # Skip creating a per-user notification if one already exists very recently
+                        exists = Notification.objects.filter(
+                            recipient_user=user,
+                            title=title,
+                            details=details
+                        ).exists()
+                        if exists:
+                            continue
+
+                        per_notif = Notification.objects.create(
+                            title=title,
+                            type=notif_type,
+                            recipient_user=user,
+                            recipient=user.email,
+                            details=details,
+                            status='pending'
+                        )
+
+                        res = send_and_update_notification(per_notif, pause_seconds=0.2)
+                        if res.get('success'):
+                            sent += 1
+                        else:
+                            failed += 1
+
+                messages.success(request, f'Broadcast completed. Sent: {sent}. Failed: {failed}.')
+                return redirect('notifications')
+
             else:
-                messages.error(request, "❌ Failed to send SMS via MSG91.")
-            return redirect('notifications')
+                # Single recipient email send: create exactly one Notification and send it.
+                # If recipient matches a user, link it; otherwise leave recipient_user blank.
+                recipient_email = recipient_value.strip()
+                recipient_user = User.objects.filter(email__iexact=recipient_email).first()
+
+                # Prevent duplicate if same user already has same notification recently
+                existing = Notification.objects.filter(
+                    recipient__iexact=recipient_email,
+                    title=title,
+                    details=details
+                ).first()
+                if existing and existing.recipient_user == recipient_user:
+                    messages.info(request, "An identical notification already exists; resent that instead.")
+                    # resend existing
+                    send_and_update_notification(existing, pause_seconds=0)
+                    return redirect('notifications')
+
+                n = Notification.objects.create(
+                    title=title,
+                    type=notif_type,
+                    recipient=recipient_email,
+                    recipient_user=recipient_user,
+                    details=details,
+                    status='pending'
+                )
+                res = send_and_update_notification(n, pause_seconds=0)
+                if res.get('success'):
+                    messages.success(request, "Email sent successfully.")
+                else:
+                    messages.error(request, f"Send failed: {res.get('error')}")
+                return redirect('notifications')
+
     else:
         form = NotificationForm()
+
     return render(request, 'notifications/new_notification.html', {'form': form})
 
 
 
-# ----------------------------
-# UPDATE NOTIFICATION (RESEND SMS)
-# ----------------------------
+
+
+
+
+# notifications/views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .forms import NotificationForm
+from .models import Notification
+from .utils import send_and_update_notification
+
+@login_required
 def update_notification_view(request, pk):
-    record = get_object_or_404(Notification, pk=pk)
+    notif = get_object_or_404(Notification, pk=pk)
 
     if request.method == 'POST':
-        form = NotificationForm(request.POST, instance=record)
+        form = NotificationForm(request.POST, instance=notif)
         if form.is_valid():
-            phone_number = form.cleaned_data['recipient']
-            message_body = form.cleaned_data['details']
-
-            if not (settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_PHONE_NUMBER):
-                messages.error(request, "Twilio credentials missing in settings.")
+            notif = form.save(commit=False)
+            # If AJAX request, perform send and return JSON
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                # synchronous send (safe for small tests / admin)
+                result = send_and_update_notification(notif, pause_seconds=0)
+                if result.get('success'):
+                    return JsonResponse({'ok': True, 'message': 'Email resent successfully.'})
+                else:
+                    return JsonResponse({'ok': False, 'message': result.get('error', 'Unknown error')} , status=500)
+            else:
+                # non-AJAX fallback: send and redirect with messages
+                result = send_and_update_notification(notif, pause_seconds=0)
+                if result.get('success'):
+                    messages.success(request, "Email resent successfully!")
+                else:
+                    messages.error(request, f"Failed to resend email: {result.get('error')}")
                 return redirect('notifications')
-
-            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-
-            try:
-                client.messages.create(
-                    body=message_body,
-                    from_=settings.TWILIO_PHONE_NUMBER,
-                    to=phone_number
-                )
-                form.save()
-                messages.success(request, "✅ SMS resent successfully!")
-            except Exception as e:
-                messages.error(request, f"❌ Failed to resend SMS: {str(e)}")
-
-            return redirect('notifications')
+        else:
+            # If AJAX and invalid form send validation errors
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                errors = {k: v.get_json_data() for k, v in form.errors.items()}
+                return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
     else:
-        form = NotificationForm(instance=record)
+        form = NotificationForm(instance=notif)
 
-    return render(request, 'notifications/update_notification.html', {'form': form})
+    return render(request, 'notifications/update_notification.html', {'form': form, 'notification': notif})
+
 
 
 # ✅ List all notifications
@@ -633,11 +734,21 @@ def notification_detail(request, pk):
 # ✅ Search notifications by title
 @login_required
 def search_noti(request):
-    query = request.GET.get('q', '').strip()
-    notifications = Notification.objects.filter(title__icontains=query) if query else []
+    # Accept either GET param 'q' or POST 'searched'
+    query = ''
+    if request.method == 'POST':
+        query = request.POST.get('searched', '').strip()
+    else:
+        query = request.GET.get('q', '').strip()
+
+    if query:
+        notifications = Notification.objects.filter(
+            Q(title__icontains=query) | Q(details__icontains=query)
+        ).order_by('-date_sent')
+    else:
+        notifications = Notification.objects.none()
+
     return render(request, 'notifications/search_noti.html', {'searched': query, 'notifications': notifications})
-
-
 
 # --------------------------
 # Plan Views
@@ -762,23 +873,24 @@ def customer_list(request):
 
 
 
-def payments_list(request):
-    query = request.GET.get('q', '')
+@login_required
 
-    # Only subscriptions for plans whose category belongs to this admin
-    payments = Subscription.objects.select_related('customer', 'plan', 'plan__category').filter(plan__category__created_by=request.user)
+def payments_list(request):
+    query = request.GET.get('q', '').strip()
+
+    # only payments related to plans whose category.created_by == current admin
+    payments = Payment.objects.select_related(
+        'subscription__customer', 'subscription__plan', 'subscription__plan__category'
+    ).filter(subscription__plan__category__created_by=request.user)
 
     if query:
         payments = payments.filter(
-            Q(customer__username__icontains=query) |
-            Q(plan__name__icontains=query)
+            Q(subscription__customer__username__icontains=query) |
+            Q(subscription__plan__name__icontains=query) |
+            Q(transaction_id__icontains=query)
         )
 
-    context = {
-        'payments': payments,
-        'query': query,
-    }
-    return render(request, 'payments/payments_list.html', context)
+    return render(request, 'payments/payments_list.html', {'payments': payments, 'query': query})
 
 
 # --------------------------
@@ -792,39 +904,35 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Category
 from .forms import CategoryForm
 
+# notifications/views.py -> category_manage
+from django.shortcuts import get_object_or_404
+
 def category_manage(request):
-    # Only show categories created by the logged-in user
     categories = Category.objects.filter(created_by=request.user)
     category = None
-
-    # Edit category
     edit_id = request.GET.get("edit")
     if edit_id:
         category = get_object_or_404(Category, id=edit_id, created_by=request.user)
 
-    # Delete category
     delete_id = request.GET.get("delete")
     if delete_id:
         obj = get_object_or_404(Category, id=delete_id, created_by=request.user)
         obj.delete()
         return redirect("category_manage")
 
-    # Add or update category form
     if category:
         form = CategoryForm(request.POST or None, instance=category)
     else:
         form = CategoryForm(request.POST or None)
 
-    if request.method == "POST":
-        if form.is_valid():
-            category_instance = form.save(commit=False)
-            # Set the creator if new
-            if not category_instance.pk:
-                category_instance.created_by = request.user
-            category_instance.save()
-            return redirect("category_manage")
+    if request.method == "POST" and form.is_valid():
+        category_instance = form.save(commit=False)
+        if not category_instance.pk:
+            category_instance.created_by = request.user
+        else:
+            # enforce that created_by remains original owner
+            category_instance.created_by = get_object_or_404(Category, pk=category_instance.pk).created_by
+        category_instance.save()
+        return redirect("category_manage")
 
-    return render(request, "category/category_manage.html", {
-        "form": form,
-        "categories": categories
-    })
+    return render(request, "category/category_manage.html", {"form": form, "categories": categories})

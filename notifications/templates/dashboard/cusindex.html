@@ -86,6 +86,14 @@
 </style>
 
 <!-- Greeting -->
+ <!-- Example place: top-right of header -->
+<h3>Your Notifications 
+    {% if unread_count > 0 %}
+        <span class="badge bg-danger">{{ unread_count }}</span>
+    {% endif %}
+</h3>
+
+
 
             <!-- Active Subscriptions -->
             <div class="dashboard-card">
@@ -135,6 +143,33 @@
                 <p>No pending payments.</p>
                 {% endif %}
             </div>
+            <!-- Internal Notifications -->
+             <div class="notification-box">
+    {% for n in notifications %}
+        <div class="notification-card" style="background:#fff;padding:15px;border-radius:10px;margin-bottom:10px;">
+            
+            <strong>{{ n.title }}</strong><br>
+            <p>{{ n.details }}</p>
+            <small>{{ n.date_sent|date:"d M Y" }}</small>
+
+            <div style="margin-top:10px;">
+                {% if n.is_read %}
+                    <a href="{% url 'notif_unread' n.id %}" class="btn btn-warning btn-sm">
+                        Mark as Unread
+                    </a>
+                {% else %}
+                    <a href="{% url 'notif_read' n.id %}" class="btn btn-success btn-sm">
+                        Mark as Read
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+    {% empty %}
+        <p>No notifications available.</p>
+    {% endfor %}
+</div>
+
 
             <!-- Charts -->
             <div class="charts">

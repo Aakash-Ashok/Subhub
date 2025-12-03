@@ -13,10 +13,21 @@ urlpatterns = [
     # -----------------------------
     # Password reset
     # -----------------------------
-    path('password_reset/', auth_views.PasswordResetView.as_view(template_name='password_reset.html'), name='password_reset'),
-    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='password_reset_done.html'), name='password_reset_done'),
-    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'), name='password_reset_confirm'),
-    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'), name='password_reset_complete'),
+    path("password-reset/", 
+         auth_views.PasswordResetView.as_view(template_name="login/password_reset.html"),
+         name="password_reset"),
+
+    path("password-reset/done/", 
+         auth_views.PasswordResetDoneView.as_view(template_name="login/password_reset_done.html"),
+         name="password_reset_done"),
+
+    path("reset/<uidb64>/<token>/", 
+         auth_views.PasswordResetConfirmView.as_view(template_name="login/password_reset_confirm.html"),
+         name="password_reset_confirm"),
+
+    path("reset/done/", 
+         auth_views.PasswordResetCompleteView.as_view(template_name="login/password_reset_complete.html"),
+         name="password_reset_complete"),
 
     # -----------------------------
     # Dashboards
@@ -71,4 +82,9 @@ urlpatterns = [
     path('categories/<str:category_type>/', customer_views.categories_by_type, name='categories_by_type'),
     path('categories/plans/<int:category_id>/', customer_views.plans_by_category, name='plans_by_category'),
     path('customer/subscribe/<int:plan_id>/', customer_views.subscribe_plan, name='subscribe_plan'),
+    path("Cnotifications/read/<int:pk>/", customer_views.mark_notification_read, name="notif_read"),
+    path("Cnotifications/unread/<int:pk>/", customer_views.mark_notification_unread, name="notif_unread"),
+
+    
+
 ]

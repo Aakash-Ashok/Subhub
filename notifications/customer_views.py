@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Subscription, Plan , Category , Payment
+from .models import Subscription, Plan , Category , Payment , Notification
 from .forms import CustomerSubscriptionForm
 from django.http import HttpResponseForbidden
 from django.utils import timezone
@@ -39,6 +39,8 @@ def customer_dashboard(request):
     month_counts = Counter(months)
     subscription_labels = list(month_counts.keys())
     subscription_data = list(month_counts.values())
+    
+
 
     # Payment chart: sum of amounts per month (only pending payments)
     payment_months = [sub.start_date.strftime("%b %Y") for sub in pending_payments]
@@ -47,6 +49,10 @@ def customer_dashboard(request):
         payment_counter[month] += sub.plan.final_price
     payment_labels = list(payment_counter.keys())
     payment_data = list(payment_counter.values())
+    notifications = Notification.objects.filter(
+        recipient=customer.email
+    ).order_by('-date_sent')
+    unread_count = notifications.filter(is_read=False).count()
 
     context = {
         'customer': customer,
@@ -57,6 +63,8 @@ def customer_dashboard(request):
         'subscription_data': subscription_data,
         'payment_labels': payment_labels,
         'payment_data': payment_data,
+        "notifications": notifications[:5],
+        'unread_count': unread_count,
     }
 
     return render(request, 'dashboard/cusindex.html', context)
@@ -68,14 +76,13 @@ def subscribe_plan(request, plan_id):
     if request.method == 'POST':
         form = CustomerSubscriptionForm(request.POST)
         if form.is_valid():
-            # ✅ Create subscription
             subscription = form.save(commit=False)
             subscription.customer = request.user
             subscription.plan = plan
             subscription.subscription_status = 'Active'
             subscription.start_date = timezone.now().date()
 
-            # Set end date based on plan duration
+            # set end_date based on plan duration
             if plan.duration == 'monthly':
                 subscription.end_date = subscription.start_date + timedelta(days=30)
             elif plan.duration == 'yearly':
@@ -83,17 +90,18 @@ def subscribe_plan(request, plan_id):
             else:
                 subscription.end_date = subscription.start_date + timedelta(days=30)
 
+            subscription.is_active = True
             subscription.save()
 
-            # ✅ Create a corresponding Payment record
+            # create payment using plan.final_price property (respect discounts)
             Payment.objects.create(
                 subscription=subscription,
-                transaction_id=f"TXN-{timezone.now().strftime('%Y%m%d%H%M%S')}",  # unique transaction id
-                amount=plan.price,
-                payment_method=request.POST.get('payment_method', 'credit_card'),  # optional form field
-                status='completed',  # can be changed later if using payment gateway
+                transaction_id=f"TXN-{timezone.now().strftime('%Y%m%d%H%M%S')}",
+                amount=plan.final_price,
+                payment_method=form.cleaned_data.get('payment_method', 'credit_card'),
+                status='completed',
                 payment_date=timezone.now(),
-                notes=f"Initial payment for {plan.name} plan."
+                notes=f"Initial payment for {plan.name}"
             )
 
             return redirect('customer_subscriptions')
@@ -166,3 +174,32 @@ def plans_by_category(request, category_id):
         'category': category,
         'plans': plans
     })
+
+
+@login_required
+def mark_notification_read(request, pk):
+    notif = get_object_or_404(Notification, pk=pk)
+
+    # block if notification not belonging to user
+    if notif.recipient != request.user.email:
+        return HttpResponseForbidden()
+
+    notif.is_read = True
+    notif.read_at = timezone.now()
+    notif.save(update_fields=['is_read', 'read_at'])
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+    
+
+@login_required
+def mark_notification_unread(request, pk):
+    notif = get_object_or_404(Notification, pk=pk)
+
+    if notif.recipient != request.user.email:
+        return HttpResponseForbidden()
+
+    notif.is_read = False
+    notif.read_at = None
+    notif.save(update_fields=['is_read', 'read_at'])
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))

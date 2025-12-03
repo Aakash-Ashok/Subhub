@@ -15,17 +15,12 @@ User = get_user_model()
 from django import forms
 from .models import User
 
+# notifications/forms.py
 class SignUpForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
     re_password = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
-
-    ROLE_CHOICES = (
-        ('customer', 'Customer'),
-        ('admin', 'Admin'),
-    )
+    ROLE_CHOICES = (('customer', 'Customer'), ('admin', 'Admin'),)
     role = forms.ChoiceField(choices=ROLE_CHOICES)
-
-    # Customer profile fields (optional for admin)
     state = forms.CharField(max_length=100, required=False)
     district = forms.CharField(max_length=100, required=False)
     city = forms.CharField(max_length=100, required=False)
@@ -37,13 +32,9 @@ class SignUpForm(forms.ModelForm):
 
     def clean_password(self):
         password = self.cleaned_data.get('password')
-        # Password pattern: at least 8 chars, letters, numbers, special chars
-        import re
         pattern = r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
         if not re.match(pattern, password):
-            raise forms.ValidationError(
-                "Password must be at least 8 characters and include letters, numbers, and special characters."
-            )
+            raise ValidationError("Password must be at least 8 characters and include letters, numbers, and special characters.")
         return password
 
     def clean(self):
@@ -51,11 +42,12 @@ class SignUpForm(forms.ModelForm):
         pw = cleaned_data.get('password')
         rp = cleaned_data.get('re_password')
         if pw and rp and pw != rp:
-            raise forms.ValidationError("Passwords do not match.")
+            raise ValidationError("Passwords do not match.")
         return cleaned_data
 
     def save(self, commit=True):
         user = super().save(commit=False)
+        # Hash password only once here
         user.set_password(self.cleaned_data['password'])
         if commit:
             user.save()
@@ -81,18 +73,44 @@ class LoginForm(forms.Form):
 
         return cleaned
     
+from django import forms
+from django.core.validators import validate_email
+from .models import Notification
+
+
 class NotificationForm(forms.ModelForm):
     class Meta:
         model = Notification
         fields = ['title', 'recipient', 'type', 'details']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control form-control-lg',
+                'placeholder': 'Eg: SUBHUB – Payment reminder for your subscription',
+            }),
+            'recipient': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'customer@example.com',
+            }),
+            'type': forms.Select(attrs={
+                'class': 'form-select',
+            }),
+            'details': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 5,
+                'placeholder': 'Write the full message that will be emailed to the user…',
+            }),
+        }
 
     def clean_recipient(self):
-        phone = self.cleaned_data['recipient']
-        # Regex for Indian phone numbers: 10 digits, optional +91
-        pattern = re.compile(r'^(\+91)?[6-9]\d{9}$')
-        if not pattern.match(phone):
-            raise forms.ValidationError("Enter a valid Indian phone number (10 digits, may include +91).")
-        return phone
+        email = self.cleaned_data['recipient']
+
+        try:
+            validate_email(email)
+        except Exception:
+            raise forms.ValidationError("Enter a valid email address.")
+
+        return email
+
 
 from django import forms
 from .models import Subscription, Payment

@@ -1,0 +1,18 @@
+Django>=5.0,<5.1
+django-filter>=24.1
+python-dotenv>=1.0.1
+celery>=5.3.0
+redis>=5.0.1
+
+# SMS / Notifications
+twilio>=9.0.0
+requests>=2.31.0
+
+# Database (SQLite default)
+# No need for additional DB library unless using PostgreSQL or MySQL
+
+# Optional (If you want timezone support like pytz explicitly)
+pytz>=2024.1
+
+# For date handling consistency
+python-dateutil>=2.9.0

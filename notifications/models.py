@@ -86,10 +86,22 @@ class Notification(models.Model):
         ('Discount', 'Discount'),
     ]
     title = models.CharField(max_length=255)
-    recipient = models.CharField(max_length=20)
+    recipient = models.EmailField(max_length=254)   # changed to EmailField
     type = models.CharField(max_length=50, choices=TYPE_CHOICES)
     details = models.TextField()
     date_sent = models.DateTimeField(default=timezone.now)
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, default='pending')
+    provider = models.CharField(max_length=50, blank=True)
+    provider_message_id = models.CharField(max_length=255, blank=True, null=True)
+    meta = models.JSONField(default=dict, blank=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    last_attempt_at = models.DateTimeField(null=True, blank=True)   # newly added
+    sent_at = models.DateTimeField(null=True, blank=True)
+    recipient_user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+
+
 
     def __str__(self):
         return self.title

@@ -1,38 +1,301 @@
 {% extends "dashboard/base_dashboard.html" %}
 {% load static %}
 
-{% block title %}Notifications{% endblock %}
+{% block title %}New Notification{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<style>
+    .noti-shell {
+        padding: 24px 12px;
+    }
+
+    .noti-header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .noti-header-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #1f2933;
+    }
+
+    .noti-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .noti-date-pill {
+        font-size: 14px;
+        color: #4b5563;
+        background: #e5f4f4;
+        border-radius: 999px;
+        padding: 6px 14px;
+    }
+
+    /* Single card layout */
+    .noti-card {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 20px 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        border: 1px solid rgba(15, 23, 42, 0.03);
+        max-width: 850px;
+        margin: 0 auto;
+    }
+
+    .noti-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .noti-card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .noti-chip {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 4px 9px;
+        border-radius: 999px;
+        background: #e0f2f1;
+        color: #047857;
+        font-weight: 600;
+    }
+
+    /* Form specifics */
+    .noti-form {
+        margin-top: 4px;
+    }
+
+    .noti-form-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px 18px;
+    }
+
+    @media (min-width: 768px) {
+        .noti-form-grid.two-cols {
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        }
+    }
+
+    .noti-field-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .noti-label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .noti-form label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0;
+    }
+
+    .noti-optional {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    .noti-form .form-control,
+    .noti-form .form-select,
+    .noti-form textarea,
+    .noti-form input {
+        font-size: 14px;
+        border-radius: 8px;
+        border-color: #d1d5db;
+        background-color: #f9fafb;
+        padding: 9px 11px;
+    }
+
+    .noti-form textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .noti-form .form-control:focus,
+    .noti-form .form-select:focus,
+    .noti-form textarea:focus,
+    .noti-form input:focus {
+        border-color: #2a908f;
+        box-shadow: 0 0 0 3px rgba(42, 144, 143, 0.12);
+        background-color: #ffffff;
+    }
+
+    .noti-help-text {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 4px;
+    }
+
+    /* Error styling */
+    .noti-form .errorlist {
+        list-style: none;
+        padding-left: 0;
+        margin: 4px 0 0;
+        font-size: 12px;
+        color: #b91c1c;
+    }
+
+    .noti-form .errorlist li::before {
+        content: "⚠ ";
+    }
+
+    /* Messages */
+    .noti-messages .alert {
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    /* Actions */
+    .noti-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    .btn-subhub-primary {
+        background: #2a908f;
+        border-color: #2a908f;
+        color: #ffffff;
+        font-weight: 600;
+        border-radius: 999px;
+        padding-inline: 20px;
+        padding-block: 8px;
+        font-size: 14px;
+    }
+
+    .btn-subhub-primary:hover {
+        background: #237776;
+        border-color: #237776;
+        color: #ffffff;
+    }
+
+    .btn-subhub-ghost {
+        border-radius: 999px;
+        border-color: rgba(31, 41, 55, 0.12);
+        color: #374151;
+        background: #ffffff;
+        padding-inline: 18px;
+        padding-block: 8px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .btn-subhub-ghost:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+</style>
+
+<div class="noti-shell">
 
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">Hello User</h2>
-        <span class="text-muted">{% now "d N Y" %}</span>
-    </div>
-
-    <!-- Notifications Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Sent Notifications</h3>
-        <form method="get" class="d-flex">
-            <input type="text" class="form-control me-2" placeholder="Search Notifications" name="searched">
-            <button type="submit" class="btn btn-outline-secondary">
-                <img src="{% static 'notifications/img/search-2.svg' %}" alt="Search" style="width:18px; height:18px;">
-            </button>
-        </form>
-    </div>
-
-    <!-- Notification Form -->
-    <div class="card shadow">
-        <div class="card-body">
-            <form method="post" action="{% url 'new_notification' %}">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="btn btn-primary mt-2">Send</button>
-            </form>
+    <div class="noti-header-bar">
+        <div>
+            <div class="noti-header-title">Notifications</div>
+            <div class="noti-subtitle">Create and send SMS / email style updates to your customers.</div>
+        </div>
+        <div class="noti-date-pill">
+            {% now "d N Y" %}
         </div>
     </div>
 
+    <!-- Single main card (no tips section) -->
+    <div class="noti-card">
+        <div class="noti-card-header">
+            <div class="noti-card-title">New Notification</div>
+            <span class="noti-chip">Compose &amp; Send</span>
+        </div>
+
+        <!-- Django messages (if any) -->
+        {% if messages %}
+        <div class="noti-messages mb-2">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} mb-1" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'new_notification' %}" class="noti-form" novalidate>
+            {% csrf_token %}
+
+            <!-- Title -->
+            <div class="noti-field-group">
+                <div class="noti-label-row">
+                    <label for="{{ form.title.id_for_label }}">Title</label>
+                </div>
+                {{ form.title }}
+                <div class="noti-help-text">
+                    Example: “SUBHUB – Your payment is due in 3 days”.
+                </div>
+                {{ form.title.errors }}
+            </div>
+
+            <!-- Recipient + Type (2 cols on desktop) -->
+            <div class="noti-form-grid two-cols" style="margin-top: 14px;">
+                <div class="noti-field-group">
+                    <div class="noti-label-row">
+                        <label for="{{ form.recipient.id_for_label }}">Recipient</label>
+                    </div>
+                    {{ form.recipient }}
+                    <div class="noti-help-text">
+                        Customer email or phone (based on channel you use).
+                    </div>
+                    {{ form.recipient.errors }}
+                </div>
+
+                <div class="noti-field-group">
+                    <div class="noti-label-row">
+                        <label for="{{ form.type.id_for_label }}">Notification Type</label>
+                    </div>
+                    {{ form.type }}
+                    {{ form.type.errors }}
+                </div>
+            </div>
+
+            <!-- Message -->
+            <div class="noti-field-group" style="margin-top: 14px;">
+                <div class="noti-label-row">
+                    <label for="{{ form.details.id_for_label }}">Message</label>
+                    <span class="noti-optional">You can use line breaks &amp; emojis 🙂</span>
+                </div>
+                {{ form.details }}
+                <div class="noti-help-text">
+                    This content will be sent as the main body of the notification.
+                </div>
+                {{ form.details.errors }}
+            </div>
+
+            <!-- Actions -->
+            <div class="noti-actions">
+                <a href="{% url 'notifications' %}" class="btn btn-sm btn-subhub-ghost">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-sm btn-subhub-primary">
+                    Send Notification
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

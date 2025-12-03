@@ -122,9 +122,11 @@
 
     <form method="post" action="{% url 'new_notification' %}">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Send</button>
-        <a href="{% url 'notifications' %}" class="btn-create">Go Back</a>
+  {{ form.as_p }}
+  <div class="form-group">
+    <label><input type="checkbox" name="send_to_all" value="yes"> Send email to all customers</label>
+  </div>
+  <button class="btn btn-primary" type="submit">Send</button>
     </form>
 </div>
 {% endblock %}
