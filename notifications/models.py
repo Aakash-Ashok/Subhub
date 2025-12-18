@@ -188,26 +188,31 @@ class Plan(models.Model):
 # Subscription
 # ----------------------------
 class Subscription(models.Model):
-    customer = models.ForeignKey('User', on_delete=models.CASCADE, related_name='subscriptions')
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
     plan = models.ForeignKey(Plan, on_delete=models.PROTECT)
-    start_date = models.DateField(default=timezone.now)
+
+    start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
+
     phone_number = models.CharField(max_length=20, blank=True)
     address = models.CharField(max_length=255, blank=True)
-    is_active = models.BooleanField(default=True)
-    subscription_status = models.CharField(max_length=10, default='Active')
+    is_active = models.BooleanField(default=False)
+    subscription_status = models.CharField(max_length=10, default='Pending')
+
 
     def __str__(self):
         return f"{self.customer.email} - {self.plan.name}"
 
     def save(self, *args, **kwargs):
-        # Automatically set end_date based on plan duration
-        if not self.end_date:
+        # Only auto-set end_date if start_date exists
+        if self.start_date and not self.end_date:
             if self.plan.duration == 'monthly':
                 self.end_date = self.start_date + timedelta(days=30)
             elif self.plan.duration == 'yearly':
                 self.end_date = self.start_date + timedelta(days=365)
+
         super().save(*args, **kwargs)
+
 
     def next_due_date(self):
         """Calculate next renewal date"""
@@ -228,33 +233,79 @@ class Subscription(models.Model):
         ordering = ['-start_date']
 
 
-# ✅ Payment Model (handles all payment-related details)
+
 class Payment(models.Model):
+
+    # ✅ Choices defined INSIDE the class
     PAYMENT_METHOD_CHOICES = [
-        ('credit_card', 'Credit Card'),
-        ('paypal', 'PayPal'),
-        ('bank_transfer', 'Bank Transfer'),
-        ('other', 'Other'),
+        ('UPI', 'UPI'),
+        ('Netbanking', 'Netbanking'),
+        ('Card', 'Card'),
+        ('Wallet', 'Wallet'),
     ]
+
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('completed', 'Completed'),
         ('failed', 'Failed'),
         ('refunded', 'Refunded'),
     ]
-   
 
-    subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, related_name='payments')
-    transaction_id = models.CharField(max_length=100, unique=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_date = models.DateTimeField(default=timezone.now)
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    notes = models.TextField(blank=True, null=True)
-   
+    subscription = models.ForeignKey(
+        Subscription,
+        on_delete=models.CASCADE,
+        related_name='payments'
+    )
 
-    def __str__(self):
-        return f"Payment {self.transaction_id} - {self.subscription.customer.email}"
+    transaction_id = models.CharField(
+        max_length=100,
+        unique=True
+    )
+
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    payment_date = models.DateTimeField(
+        default=timezone.now
+    )
+
+    # ✅ NO USER CHOICE — internal field only
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHOD_CHOICES,
+        null=True,
+        blank=True
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+
+    # Razorpay metadata
+    razorpay_order_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+
+    razorpay_payment_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+
+    razorpay_signature = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True
+    )
 
     class Meta:
         ordering = ['-payment_date']
+
+    def __str__(self):
+        return f"{self.subscription.customer.email} - ₹{self.amount}"

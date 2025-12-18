@@ -118,12 +118,7 @@ from .models import Subscription, Payment
 
 class CustomerSubscriptionForm(forms.ModelForm):
     # ✅ Add payment_method as a standalone field (not linked to Subscription model)
-    payment_method = forms.ChoiceField(
-        choices=Payment.PAYMENT_METHOD_CHOICES,
-        required=True,
-        label="Payment Method"
-    )
-
+    
     class Meta:
         model = Subscription
         fields = ['start_date', 'phone_number', 'address']  # payment_method handled separately

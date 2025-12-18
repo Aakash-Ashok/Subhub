@@ -69,6 +69,13 @@ def customer_dashboard(request):
 
     return render(request, 'dashboard/cusindex.html', context)
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from .models import Plan, Subscription
+from .forms import CustomerSubscriptionForm
+
+
 @login_required
 def subscribe_plan(request, plan_id):
     plan = get_object_or_404(Plan, id=plan_id, status='active')
@@ -79,36 +86,24 @@ def subscribe_plan(request, plan_id):
             subscription = form.save(commit=False)
             subscription.customer = request.user
             subscription.plan = plan
-            subscription.subscription_status = 'Active'
-            subscription.start_date = timezone.now().date()
 
-            # set end_date based on plan duration
-            if plan.duration == 'monthly':
-                subscription.end_date = subscription.start_date + timedelta(days=30)
-            elif plan.duration == 'yearly':
-                subscription.end_date = subscription.start_date + timedelta(days=365)
-            else:
-                subscription.end_date = subscription.start_date + timedelta(days=30)
+            # 🔒 Payment not done yet
+            subscription.subscription_status = 'Pending'
+            subscription.is_active = False
+            subscription.start_date = None
+            subscription.end_date = None
 
-            subscription.is_active = True
             subscription.save()
 
-            # create payment using plan.final_price property (respect discounts)
-            Payment.objects.create(
-                subscription=subscription,
-                transaction_id=f"TXN-{timezone.now().strftime('%Y%m%d%H%M%S')}",
-                amount=plan.final_price,
-                payment_method=form.cleaned_data.get('payment_method', 'credit_card'),
-                status='completed',
-                payment_date=timezone.now(),
-                notes=f"Initial payment for {plan.name}"
-            )
-
-            return redirect('customer_subscriptions')
+            return redirect('start_payment', subscription.id)
     else:
         form = CustomerSubscriptionForm()
 
-    return render(request, 'customers/subscribe.html', {'form': form, 'plan': plan})
+    return render(request, 'customers/subscribe.html', {
+        'form': form,
+        'plan': plan
+    })
+
 
 
 # ✅ List (All subscriptions of logged-in customer)
@@ -203,3 +198,82 @@ def mark_notification_unread(request, pk):
     notif.save(update_fields=['is_read', 'read_at'])
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+
+import razorpay
+from django.conf import settings
+
+@login_required
+def start_payment(request, subscription_id):
+    subscription = get_object_or_404(
+        Subscription,
+        id=subscription_id,
+        customer=request.user,
+        subscription_status='Pending'
+    )
+
+    client = razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
+
+    amount = int(subscription.plan.final_price * 100)
+
+    order = client.order.create({
+        'amount': amount,
+        'currency': 'INR',
+        'payment_capture': 1
+    })
+
+    return render(request, 'customers/pay.html', {
+        'subscription': subscription,
+        'razorpay_key': settings.RAZORPAY_KEY_ID,
+        'order_id': order['id'],
+        'amount': amount
+    })
+
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from datetime import timedelta
+from .models import Payment
+
+
+@csrf_exempt
+def payment_success(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+
+    subscription_id = request.POST.get('subscription_id')
+    subscription = get_object_or_404(
+        Subscription,
+        id=subscription_id,
+        subscription_status='Pending'
+    )
+
+    # ✅ Create payment (NO user choice)
+    Payment.objects.create(
+        subscription=subscription,
+        transaction_id=request.POST.get('razorpay_payment_id'),
+        amount=subscription.plan.final_price,
+        payment_method=Payment.PAYMENT_METHOD_CHOICES[0][0],  # 'UPI' or internal default
+        status='completed',
+        razorpay_order_id=request.POST.get('razorpay_order_id'),
+        razorpay_payment_id=request.POST.get('razorpay_payment_id'),
+        razorpay_signature=request.POST.get('razorpay_signature')
+    )
+
+    # ✅ Activate subscription AFTER payment
+    subscription.subscription_status = 'Active'
+    subscription.is_active = True
+    subscription.start_date = timezone.now().date()
+
+    if subscription.plan.duration == 'monthly':
+        subscription.end_date = subscription.start_date + timedelta(days=30)
+    else:
+        subscription.end_date = subscription.start_date + timedelta(days=365)
+
+    subscription.save()
+
+    return JsonResponse({'success': True})

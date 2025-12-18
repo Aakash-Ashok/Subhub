@@ -85,13 +85,18 @@ TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
 TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
 
 # Optional Email (SMTP) settings (useful as fallback or for admin mails)
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = os.getenv('EMAIL_HOST', '')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587) or 587)
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') in ('True', 'true', '1')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@yourdomain.com')
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'akashask0112@gmail.com'
+EMAIL_HOST_PASSWORD = 'symirlndaqwbszvk'  # NO SPACES
+
+DEFAULT_FROM_EMAIL = 'SubHub <akashask0112@gmail.com>'
+
+
 
 # Database
 DATABASES = {
@@ -174,3 +179,7 @@ LOGGING = {
         'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
     },
 }
+
+
+RAZORPAY_KEY_ID = "rzp_test_RsyPmS48z8HtCy"
+RAZORPAY_KEY_SECRET = "Vd4RAWjHzQNLchUIp8hnvdUo"

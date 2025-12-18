@@ -1,0 +1,93 @@
+{% extends "dashboard/cusbase_dashboard.html" %}
+{% load static %}
+
+{% block title %}Complete Payment{% endblock %}
+{% block page_title %}Complete Payment{% endblock %}
+
+{% block content %}
+<div class="dashboard-card" style="max-width:500px; margin:40px auto; text-align:center;">
+    
+    <h2 style="color:#2a908f;">Payment Confirmation</h2>
+
+    <p style="margin-top:15px;">
+        <strong>Plan:</strong> {{ subscription.plan.name }}
+    </p>
+
+    <p>
+        <strong>Amount:</strong> ₹{{ subscription.plan.final_price }}
+    </p>
+
+    <button id="pay-btn" class="subscribe-btn" style="margin-top:20px;">
+        Pay ₹{{ subscription.plan.final_price }}
+    </button>
+
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+document.getElementById("pay-btn").onclick = function () {
+    var options = {
+        "key": "{{ razorpay_key }}",
+        "amount": "{{ amount }}",
+        "currency": "INR",
+        "name": "SUBHUB",
+        "description": "{{ subscription.plan.name }}",
+        "order_id": "{{ order_id }}",
+        "handler": function (response) {
+
+            fetch("{% url 'payment_success' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    "subscription_id": "{{ subscription.id }}",
+                    "razorpay_payment_id": response.razorpay_payment_id,
+                    "razorpay_order_id": response.razorpay_order_id,
+                    "razorpay_signature": response.razorpay_signature
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = "{% url 'customer_subscriptions' %}";
+                } else {
+                    alert("Payment verification failed.");
+                }
+            });
+        },
+        "theme": {
+            "color": "#2a908f"
+        }
+    };
+
+    var rzp = new Razorpay(options);
+    rzp.open();
+};
+</script>
+
+<style>
+.dashboard-card {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.subscribe-btn {
+    padding: 12px 24px;
+    background-color: #2a908f;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.subscribe-btn:hover {
+    background-color: #237776;
+}
+</style>
+{% endblock %}
