@@ -19,8 +19,10 @@ from .models import User
 class SignUpForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
     re_password = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
-    ROLE_CHOICES = (('customer', 'Customer'), ('admin', 'Admin'),)
+
+    ROLE_CHOICES = (('customer', 'Customer'), ('admin', 'Admin'))
     role = forms.ChoiceField(choices=ROLE_CHOICES)
+
     state = forms.CharField(max_length=100, required=False)
     district = forms.CharField(max_length=100, required=False)
     city = forms.CharField(max_length=100, required=False)
@@ -28,26 +30,51 @@ class SignUpForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'mobile_number', 'role', 'password', 're_password', 'state', 'district', 'city', 'pin_code']
+        fields = [
+            'username', 'email', 'mobile_number', 'role',
+            'password', 're_password',
+            'state', 'district', 'city', 'pin_code'
+        ]
 
+    # ✅ PHONE NUMBER VALIDATION (10 digits only)
+    def clean_mobile_number(self):
+        mobile = self.cleaned_data.get('mobile_number')
+
+        if not mobile:
+            raise ValidationError("Mobile number is required.")
+
+        if not mobile.isdigit():
+            raise ValidationError("Mobile number must contain only digits.")
+
+        if len(mobile) != 10:
+            raise ValidationError("Mobile number must be exactly 10 digits.")
+
+        return mobile
+
+    # ✅ PASSWORD STRENGTH VALIDATION
     def clean_password(self):
         password = self.cleaned_data.get('password')
         pattern = r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
         if not re.match(pattern, password):
-            raise ValidationError("Password must be at least 8 characters and include letters, numbers, and special characters.")
+            raise ValidationError(
+                "Password must be at least 8 characters and include letters, numbers, and special characters."
+            )
         return password
 
+    # ✅ CONFIRM PASSWORD MATCH
     def clean(self):
         cleaned_data = super().clean()
         pw = cleaned_data.get('password')
         rp = cleaned_data.get('re_password')
+
         if pw and rp and pw != rp:
             raise ValidationError("Passwords do not match.")
+
         return cleaned_data
 
+    # ✅ SAVE USER WITH HASHED PASSWORD
     def save(self, commit=True):
         user = super().save(commit=False)
-        # Hash password only once here
         user.set_password(self.cleaned_data['password'])
         if commit:
             user.save()
