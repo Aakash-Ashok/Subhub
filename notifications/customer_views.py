@@ -19,6 +19,13 @@ from collections import Counter
 from collections import Counter
 from datetime import date
 
+from datetime import date
+from collections import Counter
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Notification
+
+
 @login_required
 def customer_dashboard(request):
     customer = request.user
@@ -31,27 +38,35 @@ def customer_dashboard(request):
         else:
             sub.days_left = 0
 
+    # Filter subscriptions
     active_subscriptions = [s for s in subscriptions if s.subscription_status == 'Active']
     pending_payments = [s for s in subscriptions if s.subscription_status != 'Active']
 
     # Subscription chart: count per month
-    months = [sub.start_date.strftime("%b %Y") for sub in subscriptions]
+    months = [
+        sub.start_date.strftime("%b %Y")
+        for sub in subscriptions
+        if sub.start_date
+    ]
     month_counts = Counter(months)
     subscription_labels = list(month_counts.keys())
     subscription_data = list(month_counts.values())
-    
-
 
     # Payment chart: sum of amounts per month (only pending payments)
-    payment_months = [sub.start_date.strftime("%b %Y") for sub in pending_payments]
     payment_counter = Counter()
-    for sub, month in zip(pending_payments, payment_months):
-        payment_counter[month] += sub.plan.final_price
+    for sub in pending_payments:
+        if sub.start_date:
+            month = sub.start_date.strftime("%b %Y")
+            payment_counter[month] += sub.plan.final_price
+
     payment_labels = list(payment_counter.keys())
     payment_data = list(payment_counter.values())
+
+    # Notifications
     notifications = Notification.objects.filter(
         recipient=customer.email
     ).order_by('-date_sent')
+
     unread_count = notifications.filter(is_read=False).count()
 
     context = {
@@ -63,11 +78,12 @@ def customer_dashboard(request):
         'subscription_data': subscription_data,
         'payment_labels': payment_labels,
         'payment_data': payment_data,
-        "notifications": notifications[:5],
+        'notifications': notifications[:5],
         'unread_count': unread_count,
     }
 
     return render(request, 'dashboard/cusindex.html', context)
+
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required

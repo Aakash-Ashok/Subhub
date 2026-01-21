@@ -215,12 +215,16 @@ class Subscription(models.Model):
 
 
     def next_due_date(self):
-        """Calculate next renewal date"""
-        if self.plan.duration == 'monthly':
-            return self.start_date + timedelta(days=30)
-        elif self.plan.duration == 'yearly':
-            return self.start_date + timedelta(days=365)
+     """Calculate next renewal date"""
+     if not self.start_date:
+        return None
+
+     if self.plan and self.plan.duration == 'monthly':
         return self.start_date + timedelta(days=30)
+     elif self.plan and self.plan.duration == 'yearly':
+        return self.start_date + timedelta(days=365)
+
+     return self.start_date + timedelta(days=30)
 
     def days_left(self):
         """Return number of days remaining in subscription"""

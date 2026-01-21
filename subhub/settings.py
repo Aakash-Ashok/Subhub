@@ -91,8 +91,8 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = 'akashask0112@gmail.com'
-EMAIL_HOST_PASSWORD = 'symirlndaqwbszvk'  # NO SPACES
+EMAIL_HOST_USER = 'nupura1726@gmail.com'
+EMAIL_HOST_PASSWORD = 'fzadcpnqteaarhud'  # NO SPACES
 
 DEFAULT_FROM_EMAIL = 'SubHub <akashask0112@gmail.com>'
 

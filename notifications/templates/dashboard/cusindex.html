@@ -135,7 +135,7 @@
                         {% else %}
                         <p class="days-left"><strong>Days Left:</strong> {{ sub.days_left }} days</p>
                         {% endif %}
-                        <a href="{% url 'pay_subscription' sub.id %}" class="subscribe-btn cancel-btn">Pay Now</a>
+                        <a href="{% url 'start_payment' sub.id %}" class="subscribe-btn cancel-btn">Pay Now</a>
                     </div>
                     {% endfor %}
                 </div>
